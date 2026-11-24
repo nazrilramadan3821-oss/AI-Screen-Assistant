@@ -1,5 +1,4 @@
-
-name: Build AI Screen Assistant APK
+name: Build APK Asisten Layar AI
 
 on:
   workflow_dispatch:
@@ -21,19 +20,68 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Android SDK
-        run: echo "SDK sudah ada"
-
-      - name: Accept Android licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-        
-      - name: Build APK
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          name: AI-Screen-Assistant-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          gradle-version: 8.10.2
+
+      - name: Create Android project
+        run: |
+          test -f index.html || { echo "index.html tidak ada di repo"; exit 1; }
+          mkdir -p app/src/main/assets app/src/main/java/com/nazril/asisten
+          cp index.html app/src/main/assets/index.html
+
+          cat > settings.gradle <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = "AsistenLayarAI"
+          include ':app'
+          EOF
+
+          cat > build.gradle <<'EOF'
+          plugins { id 'com.android.application' version '8.5.2' apply false }
+          EOF
+
+          echo "android.useAndroidX=true" > gradle.properties
+
+          cat > app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+            namespace 'com.nazril.asisten'
+            compileSdk 34
+            defaultConfig {
+              applicationId 'com.nazril.asisten'
+              minSdk 24
+              targetSdk 34
+              versionCode 1
+              versionName '1.0'
+            }
+            compileOptions {
+              sourceCompatibility JavaVersion.VERSION_17
+              targetCompatibility JavaVersion.VERSION_17
+            }
+          }
+          dependencies { implementation 'androidx.webkit:webkit:1.11.0' }
+          EOF
+
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <application android:label="AI Asisten" android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+              <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+
+          cat > app/src/main/java/com/nazril/asisten/MainActivity.java <<'EOF'
+          package com.nazril.asisten;
+
+          import android.app.Activity;
+          import android.content.Intent;
+          impor
