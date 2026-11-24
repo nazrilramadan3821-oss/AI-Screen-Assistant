@@ -22,10 +22,10 @@ jobs:
           java-version: 17
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        run: echo "SDK sudah ada"
 
       - name: Accept Android licenses
-        run: yes | sdkmanager --licenses || true
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
         
       - name: Build APK
         run: |
