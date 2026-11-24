@@ -55,9 +55,9 @@ button:disabled{opacity:.5}
   <input type="file" id="file" accept="image/*" hidden>
 </div>
 <script>
-const MODEL = "gpt-4o-mini";
-function getKey(){ try{return localStorage.getItem("okey")||""}catch(e){return ""} }
-function askKey(){ const k = prompt("Tempel OpenAI API Key (diawali sk-). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{localStorage.setItem("okey", k.trim())}catch(e){} } return getKey(); }
+const MODEL = "gemini-flash-latest";
+function getKey(){ try{return localStorage.getItem("gkey")||""}catch(e){return ""} }
+function askKey(){ const k = prompt("Tempel Gemini API Key (diawali AIza). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
 
 const chat = document.getElementById("chat"), txt = document.getElementById("txt"),
   send = document.getElementById("send"), file = document.getElementById("file"),
@@ -146,19 +146,26 @@ async function kirim(){
   try{
     let key = getKey() || askKey();
     if (!key) throw new Error("API Key belum diisi (tekan tombol Kunci)");
-    const msgs = [{role:"system", content:"Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas."}];
+    const contents = [];
     history.forEach((m,i)=>{
+      const parts = [{text: m.text || (m.image ? "Jelaskan gambar ini." : "")}];
       if (m.role==="user" && m.image && i===history.length-1)
-        msgs.push({role:"user", content:[{type:"text", text:m.text||"Jelaskan gambar ini."},{type:"image_url", image_url:{url:m.image}}]});
-      else msgs.push({role:m.role, content:m.text||""});
+        parts.push({inline_data:{mime_type:"image/jpeg", data:m.image.split(",")[1]}});
+      contents.push({role: m.role==="assistant" ? "model" : "user", parts});
     });
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-      body: JSON.stringify({model:MODEL, messages:msgs})
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-goog-api-key":key},
+      body: JSON.stringify({
+        systemInstruction:{parts:[{text:"Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas."}]},
+        contents
+      })
     });
     const d = await r.json();
     if (!r.ok) throw new Error((d.error && d.error.message) || "Terjadi kesalahan");
-    const reply = d.choices[0].message.content;
+    const cand = d.candidates && d.candidates[0];
+    const reply = (cand && cand.content && cand.content.parts) ? cand.content.parts.map(p=>p.text||"").join("") : "";
+    if (!reply) throw new Error("Tidak ada jawaban (mungkin diblokir filter). Coba pertanyaan lain.");
     wait.innerHTML = fmt(reply);
     history.push({role:"assistant", text:reply});
   }catch(e){
@@ -176,5 +183,4 @@ document.getElementById("key").onclick = () => askKey();
 document.getElementById("clear").onclick = () => { history = []; setImage(null); showEmpty(); };
 </script>
 </body>
-                                                                                                          </html>
-                                                                                                           
+</html>
