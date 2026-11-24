@@ -27,23 +27,15 @@ jobs:
 
       - name: Create Android project
         run: |
-          test -f index.html || { echo "index.html tidak ada di repo"; exit 1; }
           mkdir -p app/src/main/assets app/src/main/java/com/nazril/asisten
           cp index.html app/src/main/assets/index.html
-
-          cat > settings.gradle <<'EOF'
-          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
-          rootProject.name = "AsistenLayarAI"
-          include ':app'
-          EOF
-
-          cat > build.gradle <<'EOF'
-          plugins { id 'com.android.application' version '8.5.2' apply false }
-          EOF
-
+          cp MainActivity.java app/src/main/java/com/nazril/asisten/MainActivity.java
+          echo 'pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }' > settings.gradle
+          echo 'dependencyResolutionManagement { repositories { google(); mavenCentral() } }' >> settings.gradle
+          echo 'rootProject.name = "AsistenLayarAI"' >> settings.gradle
+          echo "include ':app'" >> settings.gradle
+          echo "plugins { id 'com.android.application' version '8.5.2' apply false }" > build.gradle
           echo "android.useAndroidX=true" > gradle.properties
-
           cat > app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android {
@@ -63,7 +55,6 @@ jobs:
           }
           dependencies { implementation 'androidx.webkit:webkit:1.11.0' }
           EOF
-
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -79,9 +70,12 @@ jobs:
           </manifest>
           EOF
 
-          cat > app/src/main/java/com/nazril/asisten/MainActivity.java <<'EOF'
-          package com.nazril.asisten;
+      - name: Build APK
+        run: gradle assembleDebug --no-daemon
 
-          import android.app.Activity;
-          import android.content.Intent;
-          impor
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI-Asisten-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
