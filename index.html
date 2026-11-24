@@ -55,7 +55,7 @@ button:disabled{opacity:.5}
   <input type="file" id="file" accept="image/*" hidden>
 </div>
 <script>
-const MODEL = "gemini-flash-latest";
+const MODEL = "gemini-flash-lite-latest";
 function getKey(){ try{return localStorage.getItem("gkey")||""}catch(e){return ""} }
 function askKey(){ const k = prompt("Tempel Gemini API Key (diawali AIza). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
 
