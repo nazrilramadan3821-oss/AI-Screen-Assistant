@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Image Generator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Roboto,Arial,sans-serif;background:#0b1020;color:#e8ecf8}
+header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #1c2440}
+header h1{font-size:18px;margin:0}
+.back{background:#161d36;border:1px solid #26305a;color:#cfd6f0;border-radius:10px;padding:8px 14px;font-size:14px}
+main{max-width:560px;margin:auto;padding:16px}
+label{display:block;font-size:13px;color:#8a94b8;margin:16px 0 6px}
+textarea{width:100%;min-height:110px;padding:14px;border-radius:14px;border:1px solid #26305a;background:#121936;color:#fff;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border-radius:999px;border:1px solid #26305a;background:#121936;color:#cfd6f0;font-size:14px}
+.chip.on{background:linear-gradient(135deg,#3b82f6,#7c3aed);color:#fff}
+.go{width:100%;margin-top:20px;padding:16px;border:0;border-radius:14px;font-size:17px;font-weight:600;color:#fff;background:linear-gradient(135deg,#3b82f6,#7c3aed)}
+.card{margin-top:20px;border-radius:16px;overflow:hidden;background:#121936}
+.card img{width:100%;display:block}
+.err{margin-top:16px;padding:12px;border-radius:12px;background:#3a1620;color:#ffb4c0}
+.spin{width:38px;height:38px;margin:30px auto;border-radius:50%;border:4px solid #26305a;border-top-color:#7c8cff;animation:r 1s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+[hidden]{display:none!important}
+</style></head><body>
+<header><button class="back" onclick="history.back()">‹ Kembali</button><h1>AI Image Generator</h1></header>
+<main>
+<label>Deskripsi gambar</label>
+<textarea id="p" placeholder="Contoh: kucing oranye di taman saat senja"></textarea>
+<label>Contoh cepat</label><div class="chips" id="ex"></div>
+<label>Gaya</label><div class="chips" id="style"></div>
+<label>Rasio</label><div class="chips" id="ratio"></div>
+<button class="go" id="go">✨ Buat Gambar</button>
+<div id="load" hidden><div class="spin"></div></div>
+<div id="err" class="err" hidden></div>
+<div id="res" class="card" hidden><img id="img" alt="Hasil"><button id="saveBtn" type="button" style="margin-top:12px;width:100%;padding:12px;border-radius:12px;border:0;font-size:16px;font-weight:600;background:#4f46e5;color:#fff">💾 Simpan ke galeri</button></div>
+</main>
+<script>
+const $=i=>document.getElementById(i);
+const S={"Bebas":"","Realistis":"foto realistis, detail tinggi","Anime":"gaya anime","3D":"render 3D","Cat air":"lukisan cat air"};
+const R={"1:1":"rasio 1:1","16:9":"rasio 16:9","9:16":"rasio 9:16"};
+const E=["Kucing oranye di taman","Kota futuristik malam","Rumah kayu di gunung"];
+let st="Bebas",ra="1:1";
+function chips(el,items,cb,get){
+el.innerHTML="";
+items.forEach(k=>{const b=document.createElement("button");
+b.className="chip"+(get&&get()===k?" on":"");b.textContent=k;
+b.onclick=()=>{cb(k);if(get)chips(el,items,cb,get)};el.appendChild(b)});
+}
+chips($("ex"),E,k=>{$("p").value=k});
+chips($("style"),Object.keys(S),k=>st=k,()=>st);
+chips($("ratio"),Object.keys(R),k=>ra=k,()=>ra);
+$("go").onclick=async()=>{
+const t=$("p").value.trim();
+if(!t){$("err").textContent="Tulis deskripsi dulu.";$("err").hidden=false;return}
+const full=[t,S[st],R[ra]].filter(Boolean).join(", ");
+$("err").hidden=true;$("res").hidden=true;$("load").hidden=false;$("go").disabled=true;
+try{
+const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:full})});
+const d=await r.json();
+if(!r.ok)throw new Error(d.error||"Gagal");
+$("img").src=d.image;$("res").hidden=false;
+}catch(e){$("err").textContent="Error: "+e.message;$("err").hidden=false}
+$("load").hidden=true;$("go").disabled=false;
+};
+</script><script src="simpan.js?v=4"></script>
+</body></html>

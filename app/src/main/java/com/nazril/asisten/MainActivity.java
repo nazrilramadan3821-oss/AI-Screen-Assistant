@@ -79,6 +79,27 @@ public class MainActivity extends Activity {
                                                                                                                                                                                                                                                                                                                                                                                                             requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 77);
                                                                                                                                                                                                                                                                                                                                                                                                             }                                                                    
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  w.addJavascriptInterface(new NikoBridge(), "NikoNative");
+        w.setDownloadListener(new android.webkit.DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                try {
+                    String name = android.webkit.URLUtil.guessFileName(url, contentDisposition, mimeType);
+                    android.app.DownloadManager.Request rq = new android.app.DownloadManager.Request(android.net.Uri.parse(url));
+                    rq.setMimeType(mimeType);
+                    String cookie = android.webkit.CookieManager.getInstance().getCookie(url);
+                    if (cookie != null) rq.addRequestHeader("Cookie", cookie);
+                    rq.addRequestHeader("User-Agent", userAgent);
+                    rq.setTitle(name);
+                    rq.allowScanningByMediaScanner();
+                    rq.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    rq.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_PICTURES, name);
+                    ((android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE)).enqueue(rq);
+                    android.widget.Toast.makeText(MainActivity.this, "Mengunduh gambar ke galeri...", android.widget.Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    android.widget.Toast.makeText(MainActivity.this, "Gagal menyimpan: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                }
+            }
+        });
         w.loadUrl("https://appassets.androidplatform.net/assets/index.html");
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      }
 
