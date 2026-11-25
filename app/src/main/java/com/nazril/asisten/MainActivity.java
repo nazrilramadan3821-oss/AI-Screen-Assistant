@@ -83,6 +83,20 @@ public class MainActivity extends Activity {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      }
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          class NikoBridge {
+        @JavascriptInterface
+        public void startBg() {
+            runOnUiThread(() -> { try {
+                Intent i = new Intent(MainActivity.this, VoiceService.class);
+                if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
+            } catch (Exception e) {} });
+        }
+        @JavascriptInterface
+        public void stopBg() { runOnUiThread(() -> stopService(new Intent(MainActivity.this, VoiceService.class))); }
+        @JavascriptInterface
+        public void openAccess() { runOnUiThread(() -> startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))); }
+        @JavascriptInterface
+        public void openBattery() { runOnUiThread(() -> startActivity(new Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))); }
+
         android.speech.SpeechRecognizer sr;
         void js(final String s) {
             w.post(() -> w.evaluateJavascript("try{window." + s + "}catch(e){}", null));

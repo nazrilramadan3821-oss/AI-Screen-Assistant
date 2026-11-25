@@ -51,11 +51,27 @@ button:disabled{opacity:.5}
 #nkPanel label{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px}
 #nkPanel input[type=text],#nkPanel select{background:#0a0f1f;color:#e8ecff;border:1px solid #2a3358;border-radius:8px;padding:6px;max-width:150px}
 #nkPanel button{background:#4f6bff;color:#fff;border:0;border-radius:10px;padding:10px}
+
+#hsPanel{position:fixed;inset:0;margin:auto;width:min(92vw,380px);height:fit-content;max-height:85vh;overflow:auto;background:#121a33;color:#e8ecff;border:1px solid #2a3358;border-radius:16px;padding:16px;z-index:21;display:flex;flex-direction:column;gap:10px}
+#hsPanel[hidden]{display:none}
+#hsPanel h3{margin:0;font-size:16px}
+#hsPanel button{background:#4f6bff;color:#fff;border:0;border-radius:10px;padding:10px}
+#hsList{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.hsRow{display:flex;gap:6px}
+.hsRow .hsItem{flex:1;text-align:left;background:#0a0f1f;border:1px solid #2a3358;font-size:13px}
+.hsRow .hsDel{background:#3a2030;padding:10px 12px}
 </style>
 </head>
 <body>
 <header><b>AI Asisten</b><span>tanya, foto soal, pindai layar</span><button id="key">Kunci</button><button id="clear">Hapus</button></header>
 <main id="chat"></main>
+<div id="hsPanel" hidden>
+  <h3>Histori Obrolan</h3>
+  <div id="hsList"></div>
+  <button id="hsNew">Obrolan baru</button>
+  <button id="hsAll">Hapus semua histori</button>
+  <button id="hsClose">Tutup</button>
+</div>
 <div id="nkOrb"></div>
 <div id="nkPanel" hidden>
   <h3>Pengaturan Suara NIKO</h3>
@@ -64,6 +80,10 @@ button:disabled{opacity:.5}
   <label>Kata panggil <input type="text" id="nkWake"></label>
   <label>Bahasa <select id="nkLang"><option value="id-ID">Indonesia</option><option value="en-US">English</option></select></label>
   <label>Kecepatan suara <input type="range" id="nkRate" min="0.6" max="1.6" step="0.1"></label>
+  <button id="nkBg">Aktifkan NIKO di luar aplikasi</button>
+  <button id="nkBgOff">Matikan NIKO latar belakang</button>
+  <button id="nkAcc">Izin scroll dan ketuk (Aksesibilitas)</button>
+  <button id="nkBat">Izinkan jalan di latar (baterai)</button>
   <button id="nkClose">Tutup</button>
 </div>
 <div id="bar">
@@ -73,6 +93,7 @@ button:disabled{opacity:.5}
     <button class="ic" id="scr" title="Pindai layar" aria-label="Pindai layar">🖥️</button>
     <button class="ic" id="nkMic" title="Bicara" aria-label="Bicara">🎤</button>
     <button class="ic" id="nkSet" title="Pengaturan suara" aria-label="Pengaturan suara">⚙️</button>
+    <button class="ic" id="hsBtn" title="Histori" aria-label="Histori">🕘</button>
     <textarea id="txt" rows="1" placeholder="Tulis pertanyaan atau soal…"></textarea>
     <button id="send">Kirim</button>
   </div>
@@ -252,7 +273,68 @@ nkq('nkRate').oninput=e=>{nk.rate=parseFloat(e.target.value);nkSave();};
 mulaiNiko=function(){nkStopped=false;nkListen(false);};
 hentikanNiko=function(){nkStop();};
 if(nk.always)setTimeout(()=>nkListen(false),2000);
+nkq('nkBg').onclick=()=>{if(!window.NikoNative){alert('Hanya di aplikasi Android');return;}nk.always=false;nkq('nkAlways').checked=false;nkSave();nkStop();NikoNative.startBg();alert('NIKO aktif di latar belakang. Ucapkan: niko, buka TikTok');};
+nkq('nkBgOff').onclick=()=>{try{NikoNative.stopBg();}catch(e){}};
+nkq('nkAcc').onclick=()=>{try{NikoNative.openAccess();}catch(e){}};
+nkq('nkBat').onclick=()=>{try{NikoNative.openBattery();}catch(e){}};
 // ===== AKHIR NIKO NATIVE =====
+
+// ===== HISTORI =====
+let hsCur=null,hsT=null;
+function hsLoad(){try{return JSON.parse(localStorage.getItem('hist')||'[]');}catch(e){return [];}}
+function hsStore(a){try{localStorage.setItem('hist',JSON.stringify(a.slice(0,30)));}catch(e){}}
+function hsSave(){
+  if(!history||!history.length)return;
+  const a=hsLoad();
+  if(!hsCur)hsCur='h'+Date.now();
+  const first=history.find(m=>m.role==='user');
+  const item={id:hsCur,title:((first&&first.text)||'Obrolan').slice(0,40),time:Date.now(),
+    msgs:history.map(m=>({role:m.role,text:m.text||''}))};
+  const i=a.findIndex(x=>x.id===hsCur);
+  if(i>=0)a.splice(i,1);
+  a.unshift(item);
+  hsStore(a);
+}
+new MutationObserver(()=>{clearTimeout(hsT);hsT=setTimeout(hsSave,800);}).observe(chat,{childList:true,subtree:true,characterData:true});
+const hsP=document.getElementById('hsPanel'),hsL=document.getElementById('hsList');
+function hsRender(){
+  hsL.innerHTML='';
+  const a=hsLoad();
+  if(!a.length){hsL.textContent='Belum ada histori.';return;}
+  a.forEach(it=>{
+    const row=document.createElement('div');row.className='hsRow';
+    const b=document.createElement('button');b.className='hsItem';
+    const d=new Date(it.time);
+    b.textContent=it.title+' · '+d.toLocaleDateString('id-ID')+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    b.onclick=()=>hsOpen(it.id);
+    const x=document.createElement('button');x.className='hsDel';x.textContent='🗑';
+    x.onclick=()=>{hsStore(hsLoad().filter(z=>z.id!==it.id));if(hsCur===it.id)hsCur=null;hsRender();};
+    row.append(b,x);hsL.append(row);
+  });
+}
+function hsOpen(id){
+  const it=hsLoad().find(z=>z.id===id);
+  if(!it)return;
+  history=it.msgs.map(m=>({role:m.role,text:m.text}));
+  hsCur=id;
+  chat.innerHTML='';
+  it.msgs.forEach(m=>add(m.role==='user'?'user':'ai',m.text));
+  try{setImage(null);}catch(e){}
+  hsP.hidden=true;
+}
+document.getElementById('hsBtn').onclick=()=>{hsRender();hsP.hidden=false;};
+document.getElementById('hsClose').onclick=()=>{hsP.hidden=true;};
+document.getElementById('hsNew').onclick=()=>{
+  history=[];hsCur=null;
+  try{setImage(null);}catch(e){}
+  showEmpty();hsP.hidden=true;
+};
+document.getElementById('hsAll').onclick=()=>{
+  if(confirm('Hapus semua histori?')){hsStore([]);hsCur=null;hsRender();}
+};
+document.getElementById('clear').addEventListener('click',()=>{hsCur=null;});
+// ===== AKHIR HISTORI =====
+
 
 
 
