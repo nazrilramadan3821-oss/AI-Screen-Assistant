@@ -78,10 +78,56 @@ public class MainActivity extends Activity {
                                                                                                                                                                                                                                                                                                                                                                                                         != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                                                                                                                                                                                                                                                                                                                                                                                                             requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 77);
                                                                                                                                                                                                                                                                                                                                                                                                             }                                                                    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 w.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 w.addJavascriptInterface(new NikoBridge(), "NikoNative");
+        w.loadUrl("https://appassets.androidplatform.net/assets/index.html");
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         // Dipanggil dari JavaScript: Android.startScreenCapture()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         class NikoBridge {
+        android.speech.SpeechRecognizer sr;
+        void js(final String s) {
+            w.post(() -> w.evaluateJavascript("try{window." + s + "}catch(e){}", null));
+        }
+        @JavascriptInterface
+        public void listen(final String lang) {
+            runOnUiThread(() -> {
+                try {
+                    if (!android.speech.SpeechRecognizer.isRecognitionAvailable(MainActivity.this)) {
+                        js("onNikoError('tidak tersedia')");
+                        return;
+                    }
+                    if (sr != null) sr.destroy();
+                    sr = android.speech.SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                    sr.setRecognitionListener(new android.speech.RecognitionListener() {
+                        public void onReadyForSpeech(android.os.Bundle b) { js("onNikoState('listen')"); }
+                        public void onBeginningOfSpeech() {}
+                        public void onRmsChanged(float v) {}
+                        public void onBufferReceived(byte[] b) {}
+                        public void onEndOfSpeech() {}
+                        public void onError(int e) { js("onNikoError('" + e + "')"); }
+                        public void onResults(android.os.Bundle b) {
+                            java.util.ArrayList<String> l = b.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
+                            if (l != null && !l.isEmpty()) js("onNikoResult(" + org.json.JSONObject.quote(l.get(0)) + ")");
+                            else js("onNikoError('7')");
+                        }
+                        public void onPartialResults(android.os.Bundle b) {}
+                        public void onEvent(int t, android.os.Bundle b) {}
+                    });
+                    Intent i = new Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    i.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    i.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, lang);
+                    sr.startListening(i);
+                } catch (Exception e) {
+                    js("onNikoError('tidak tersedia')");
+                }
+            });
+        }
+        @JavascriptInterface
+        public void stop() {
+            runOnUiThread(() -> { if (sr != null) { sr.destroy(); sr = null; } });
+        }
+    }
+
+    // Dipanggil dari JavaScript: Android.startScreenCapture()
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @JavascriptInterface
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  public void startScreenCapture() {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          runOnUiThread(() -> {
