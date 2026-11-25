@@ -1,6 +1,7 @@
 package com.nazril.asisten;
 
 import android.app.Notification;
+import android.os.Build;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
@@ -64,7 +65,7 @@ public class AssistService extends Service implements OverlayController.Listener
       } else {
         data = (Intent) in.getParcelableExtra("data");
       }
-      mp = m.getMediaProjection(in.getIntExtra("resultcode", 0), data);
+      mp = m.getMediaProjection(in.getIntExtra("resultCode", 0), data);
       client = new GeminiVisionClient(this);
       setupCapture();
       overlay.showBubble();
