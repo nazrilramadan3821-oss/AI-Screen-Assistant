@@ -75,6 +75,83 @@ function showEmpty(){
   chat.querySelectorAll(".chip").forEach(c => c.onclick = () => { txt.value = c.dataset.q; txt.focus(); });
 }
 showEmpty();
+  
+// ===== FITUR SUARA NIKO =====
+let voiceEnabled = false;
+let waitingCommand = false;
+let recognition = null;
+
+function bicaraNiko(teks) {
+  if (!voiceEnabled) return;
+
+  speechSynthesis.cancel();
+
+  const suara = new SpeechSynthesisUtterance(teks);
+  suara.lang = "id-ID";
+  suara.rate = 1;
+  suara.pitch = 1;
+
+  speechSynthesis.speak(suara);
+}
+
+function mulaiNiko() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Browser belum mendukung pengenalan suara.");
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "id-ID";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
+  recognition.onresult = function(event) {
+    const hasil = event.results[event.results.length - 1];
+
+    if (!hasil.isFinal) return;
+
+    const ucapan = hasil[0].transcript.toLowerCase().trim();
+
+    if (!waitingCommand && ucapan.includes("niko")) {
+      const perintah = ucapan.replace(/.*?niko/, "").trim();
+
+      if (perintah) {
+        txt.value = perintah;
+        kirim();
+      } else {
+        waitingCommand = true;
+        bicaraNiko("Ya, saya mendengarkan.");
+      }
+
+    } else if (waitingCommand) {
+      waitingCommand = false;
+      txt.value = ucapan;
+      kirim();
+    }
+  };
+
+  recognition.onend = function() {
+    if (voiceEnabled) {
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  recognition.start();
+}
+
+function hentikanNiko() {
+  voiceEnabled = false;
+  waitingCommand = false;
+
+  if (recognition) recognition.stop();
+
+  speechSynthesis.cancel();
+}
+// ===== AKHIR FITUR NIKO =====
+
 
 function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
 function fmt(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>")}
@@ -169,6 +246,16 @@ txt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !
 txt.addEventListener("input", () => { txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight,120) + "px"; });
 document.getElementById("key").onclick = () => askKey();
 document.getElementById("clear").onclick = () => { history = []; setImage(null); showEmpty(); };
+  document.getElementById("voiceBtn").onclick = function() {
+  if (voiceEnabled) {
+    hentikanNiko();
+    this.textContent = "🎙️";
+  } else {
+    voiceEnabled = true;
+    mulaiNiko();
+    this.textContent = "🔴";
+  }
+};
 </script>
 </body>
 </html>
