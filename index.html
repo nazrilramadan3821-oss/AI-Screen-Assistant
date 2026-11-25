@@ -117,20 +117,8 @@ file.onchange = () => {
 document.getElementById("prm").onclick = () => setImage(null);
 
 document.getElementById("scr").onclick = async () => {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
-    add("ai", "Perangkat ini belum mendukung berbagi layar langsung. Ambil tangkapan layar (screenshot), lalu tekan tombol 📷 dan pilih gambarnya.", null, "err");
-    return;
-  }
-  try{
-    const s = await navigator.mediaDevices.getDisplayMedia({video:true});
-    const v = document.createElement("video"); v.srcObject = s; await v.play();
-    await new Promise(r => setTimeout(r, 400));
-    const c = document.createElement("canvas"); c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext("2d").drawImage(v, 0, 0);
-    s.getTracks().forEach(t => t.stop());
-    setImage(await shrink(c.toDataURL("image/png")));
-  }catch(e){ add("ai", "Berbagi layar dibatalkan atau gagal. Coba ambil screenshot lalu pilih lewat tombol 📷.", null, "err"); }
-};
+  Android.startScreenCapture();
+  };
 
 async function kirim(){
   if (busy) return;

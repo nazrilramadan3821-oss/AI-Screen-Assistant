@@ -56,7 +56,7 @@ public class GeminiVisionClient {
     String last = "Terjadi kesalahan";
 
     for (int t = 0; t < 3; t++) {
-      HttpURLConnection c = (HttpURLConnection) new URL(
+      HttpURLConnection c = (HttpURLConnection) new URl (
         "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent")
         .openConnection();
       int code;
