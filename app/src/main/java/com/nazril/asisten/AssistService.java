@@ -15,7 +15,6 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -65,7 +64,7 @@ public class AssistService extends Service implements OverlayController.Listener
       } else {
         data = (Intent) in.getParcelableExtra("data");
       }
-      mp = m.getMediaProjection(in.getIntExtra("code", 0), data);
+      mp = m.getMediaProjection(in.getIntExtra("resultcode", 0), data);
       client = new GeminiVisionClient(this);
       setupCapture();
       overlay.showBubble();
