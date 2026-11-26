@@ -1,0 +1,104 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+#z{position:fixed;right:8%;top:6%;color:#fff;font:bold 22px Arial;opacity:0;transition:opacity .4s}</style></head>
+<body><div id="z">z</div>
+<script src="three.min.js"></script>
+<script>
+var W=innerWidth||96,H=innerHeight||96;
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(35,W/H,.1,100);
+camera.position.set(0,2.8,11);camera.lookAt(0,2.7,0);
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setClearColor(0x000000,0);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(W,H,false);
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.2;
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xbfeaff,0x14234d,1));
+var key=new THREE.DirectionalLight(0xffffff,1.4);key.position.set(5,8,6);scene.add(key);
+var rim=new THREE.PointLight(0x00cfff,1.2,0);rim.position.set(-4,4,4);scene.add(rim);
+function mat(c,m,r){return new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r});}
+var blue=mat(0x087bff,.2,.3),blue2=mat(0x0053c9,.2,.3),dark=mat(0x071329,.2,.35),white=mat(0xe9f7ff,.2,.3);
+var glow=new THREE.MeshStandardMaterial({color:0x00eaff,emissive:0x00bfff,emissiveIntensity:2});
+function ball(p,x,y,z,sx,sy,sz,m){var o=new THREE.Mesh(new THREE.SphereGeometry(1,24,18),m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);p.add(o);return o;}
+var root=new THREE.Group();root.position.y=2.8;scene.add(root);
+var robot=new THREE.Group();robot.position.y=-2.8;root.add(robot);
+var head=new THREE.Group();head.position.set(0,3.8,0);robot.add(head);
+ball(head,0,.45,0,1.12,.96,.82,blue);
+ball(head,0,.42,.68,.91,.69,.23,dark);
+var eyeL=ball(head,-.39,.62,.89,.16,.19,.07,glow);
+var eyeR=ball(head,.39,.62,.89,.16,.19,.07,glow);
+ball(head,0,.22,.90,.19,.075,.055,glow);
+ball(head,-1.12,.43,0,.29,.42,.31,blue2);
+ball(head,1.12,.43,0,.29,.42,.31,blue2);
+ball(head,-1.19,.43,.22,.13,.23,.08,glow);
+ball(head,1.19,.43,.22,.13,.23,.08,glow);
+ball(head,0,1.42,0,.11,.24,.11,blue2);
+ball(head,0,1.64,0,.15,.15,.15,glow);
+ball(robot,0,3.18,0,.3,.25,.3,dark);
+ball(robot,0,2.45,0,.77,.82,.53,blue);
+ball(robot,0,2.55,.49,.27,.27,.12,glow);
+ball(robot,-.84,2.82,0,.34,.34,.34,blue2);
+ball(robot,.84,2.82,0,.34,.34,.34,blue2);
+var arms={};
+[-1,1].forEach(function(side){
+ var a=new THREE.Group();robot.add(a);a.position.set(side*.93,2.48,0);
+ ball(a,0,-.28,0,.23,.48,.23,blue);
+ ball(a,0,-.72,.05,.25,.23,.24,blue2);
+ for(var i=0;i<3;i++)ball(a,side*(i-1)*.11,-.82,.18,.075,.14,.08,white);
+ arms[side]=a;
+});
+ball(robot,0,1.53,0,.53,.32,.42,dark);
+var legs={};
+[-1,1].forEach(function(side){
+ var l=new THREE.Group();robot.add(l);l.position.set(side*.37,1.4,0);
+ ball(l,0,-.48,0,.29,.57,.29,blue2);
+ ball(l,0,-1.13,.14,.43,.29,.53,blue);
+ ball(l,0,-1.22,.59,.22,.055,.035,glow);
+ legs[side]=l;
+});
+var last=Date.now(),act=0,actStart=0,actEnd=0,lie=0,blinkUntil=0,nextBlink=3,lastFrame=0;
+var cur={r:.18,l:-.28,h:0,s:0};
+function poke(){last=Date.now();act=0;actEnd=0;}
+function pick(now){var n;do{n=Math.floor(Math.random()*8);}while(n==act);
+ act=n;actStart=now;var d=6000+Math.random()*8000;
+ if(n==7)d=20000+Math.random()*20000;if(n==6)d=2500;actEnd=now+d;}
+function frame(){
+ requestAnimationFrame(frame);
+ var now=Date.now();
+ if(now-lastFrame<(act==7?100:33))return;
+ lastFrame=now;
+ if(now-last<8000){act=0;actStart=now;actEnd=0;}else if(now>=actEnd){pick(now);}
+ var sleep=(act==7);
+ var t=now/1000,at=(now-actStart)/1000;
+ var dx=0,dy=0,ry=0,rz=0,hy=0,aR=.18,aL=-.28,sw=0,sy=1,k,q;
+ switch(act){
+  case 1:dy=Math.abs(Math.sin(at*5))*.45;aR=.5+Math.sin(at*5)*.5;aL=-(.5-Math.sin(at*5)*.5);sw=Math.sin(at*5)*.3;break;
+  case 2:aR=2.3+Math.sin(at*9)*.35;rz=Math.sin(at*3)*.03;break;
+  case 3:dx=Math.sin(at*3)*.4;rz=Math.sin(at*3)*.12;dy=Math.abs(Math.sin(at*6))*.15;aR=.9+Math.sin(at*6)*.6;aL=-(.9-Math.sin(at*6)*.6);sw=Math.sin(at*6)*.25;break;
+  case 4:hy=Math.sin(at*1.2)*.7;break;
+  case 5:k=.5+.5*Math.sin(at*1.5);aR=.18+2.7*k;aL=-.28-2.7*k;sy=1+.05*k;break;
+  case 6:q=Math.min(at/2.5,1);ry=Math.PI*2*q;dy=Math.sin(Math.PI*q)*.4;break;
+ }
+ lie+=((sleep?1:0)-lie)*.12;
+ cur.r+=(aR-cur.r)*.25;cur.l+=(aL-cur.l)*.25;cur.h+=(hy-cur.h)*.2;cur.s+=(sw-cur.s)*.25;
+ root.position.set(dx,2.8+dy+Math.sin(t*2)*.03-lie*1.6,0);
+ root.rotation.z=rz-lie*1.4;
+ root.scale.y=sy;
+ robot.rotation.y=ry;
+ head.rotation.y=cur.h;head.rotation.z=Math.sin(t*1.1)*.035;
+ arms[1].rotation.z=cur.r;arms[-1].rotation.z=cur.l;
+ legs[1].rotation.x=cur.s;legs[-1].rotation.x=-cur.s;
+ if(t>nextBlink){blinkUntil=now+160;nextBlink=t+3+Math.random()*3;}
+ var closed=sleep||now<blinkUntil;
+ eyeL.scale.y=eyeR.scale.y=closed?.03:.19;
+ document.getElementById('z').style.opacity=lie>.8?1:0;
+ renderer.render(scene,camera);
+}
+frame();
+addEventListener('resize',function(){W=innerWidth;H=innerHeight;renderer.setSize(W,H,false);camera.aspect=W/H;camera.updateProjectionMatrix();});
+</script></body></html>

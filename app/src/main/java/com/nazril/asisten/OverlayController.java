@@ -59,6 +59,7 @@ public class OverlayController {
       WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
       PixelFormat.TRANSLUCENT);
     lp.gravity = Gravity.TOP | Gravity.START;
+        lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
     lp.x = dp(8);
     lp.y = dp(200);
 
