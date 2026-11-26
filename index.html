@@ -442,5 +442,98 @@ document.getElementById("clear").onclick = () => { history = []; setImage(null);
   }
 };
 </script>
+<script id="skin-patch">
+(function(){try{
+var KEY='aiSkin',S={},T='avatar';
+var SH={circle:['50%',''],round:['28%',''],square:['6%',''],egg:['50% 50% 50% 50%/60% 60% 40% 40%',''],hex:['0','polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%)'],dia:['0','polygon(50% 0,100% 50%,50% 100%,0 50%)'],star:['0','polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)']};
+var SHN={circle:'Bulat',round:'Kotak bulat',square:'Kotak',egg:'Telur',hex:'Segi enam',dia:'Berlian',star:'Bintang'};
+var EM=['AI','🤖','👾','👽','🐱','🦊','🐼','👻','🐲','🚀','🧠','🔮','⭐','😀'];
+var COL=['#3b82f6','#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#8b5cf6','#ec4899','#64748b','#111827'];
+try{S=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){S={}}
+S.avatar=S.avatar||{};S.orb=S.orb||{};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function inSheet(el){return el.closest&&el.closest('#sk-sheet,#sk-btn')}
+function round(el){var r=el.getBoundingClientRect(),b=getComputedStyle(el).borderTopLeftRadius;
+if(r.width<24||r.width>200||Math.abs(r.width-r.height)>4)return false;
+return b.indexOf('%')>-1?parseFloat(b)>=40:parseFloat(b)>=r.width/2-1}
+function paint(el){
+var c=S[el.getAttribute('data-sk')]||{},o={},sh=SH[c.shape],k;
+el.setAttribute('style',el._sk0[0]);el.innerHTML=el._sk0[1];
+if(c.size){o.width=o.height=o['min-width']=o['min-height']=c.size+'px';o.flex='none'}
+if(sh){o['border-radius']=sh[0];o['clip-path']=sh[1]||'none'}
+if(c.color){o['background-color']=c.color;o['background-image']='radial-gradient(circle at 30% 25%,rgba(255,255,255,.35),rgba(255,255,255,0) 60%)'}
+if(c.img){o['background-image']='url("'+c.img+'")';o['background-size']='cover';o['background-position']='center'}
+if(c.size||c.txt!=null||c.img){var w=c.size||parseFloat(getComputedStyle(el).width)||44;
+o.display='flex';o['align-items']='center';o['justify-content']='center';o['line-height']='1';
+o['font-size']=Math.round(w*(/^[A-Za-z0-9 ]*$/.test(c.txt==null?'AI':c.txt)?.38:.55))+'px'}
+for(k in o)el.style.setProperty(k,o[k],'important');
+if(c.img)el.textContent='';else if(c.txt!=null)el.textContent=c.txt}
+function tag(el,t){el.setAttribute('data-sk',t);el._sk0=[el.getAttribute('style')||'',el.innerHTML];paint(el)}
+function scan(){var all=document.querySelectorAll('body *'),i,j,el,p,pos;
+for(i=0;i<all.length;i++){el=all[i];
+if(el.hasAttribute('data-sk')||inSheet(el)||/^(SCRIPT|STYLE|SVG|PATH|INPUT|TEXTAREA|CANVAS|IMG|NOSCRIPT)$/i.test(el.tagName))continue;
+if(el.parentElement&&el.parentElement.closest('[data-sk]'))continue;
+if(el.children.length===0&&el.textContent.trim()==='AI'){p=el;
+for(j=0;j<3&&p&&p!==document.body;j++){if(round(p)&&!p.hasAttribute('data-sk')){tag(p,'avatar');break}p=p.parentElement}continue}
+pos=getComputedStyle(el).position;
+if((pos==='fixed'||pos==='absolute')&&el.textContent.trim().length<3&&round(el))tag(el,'orb')}}
+function repaint(){document.querySelectorAll('[data-sk]').forEach(paint)}
+var css=document.createElement('style');
+css.textContent='#sk-sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(560px,100%);max-height:55vh;overflow:auto;background:#0f1526;color:#e6eaf7;border:1px solid #27314d;border-radius:16px 16px 0 0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));z-index:2147483000;font:14px/1.3 system-ui,sans-serif;display:none;box-shadow:0 -10px 40px rgba(0,0,0,.5);box-sizing:border-box}#sk-sheet h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;align-items:center}#sk-sheet .r{margin:10px 0 4px;color:#8f9bbd;font-size:12px}#sk-sheet .w{display:flex;flex-wrap:wrap;gap:6px}#sk-sheet [data-a]{border:1px solid #27314d;background:#171f36;color:inherit;border-radius:10px;padding:7px 10px;font:inherit;min-width:36px}#sk-sheet [data-a].on{border-color:#6d8cff;background:#22305a}#sk-sheet .c{width:30px;height:30px;padding:0;border-radius:50%;min-width:0}#sk-sheet input[type=range]{width:100%}#sk-sheet input[type=text]{background:#171f36;color:inherit;border:1px solid #27314d;border-radius:10px;padding:7px 10px;width:90px;font:inherit}#sk-sheet input[type=color]{width:36px;height:32px;padding:0;border:0;background:none}';
+document.head.appendChild(css);
+var sh=document.createElement('div');sh.id='sk-sheet';document.body.appendChild(sh);
+var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.style.display='none';document.body.appendChild(fi);
+function cur(){return S[T]}
+function render(){
+if(T==='orb'&&!document.querySelector('[data-sk=orb]'))T='avatar';
+var c=cur(),el=document.querySelector('[data-sk='+T+']'),sz=c.size||(el?Math.round(el.getBoundingClientRect().width):44),h='';
+function on(x){return x?' class="on"':''}
+h+='<h4>Atur tampilan AI<button data-a="close">Tutup</button></h4>';
+if(document.querySelector('[data-sk=orb]'))h+='<div class="w"><button data-a="tab" data-v="avatar"'+on(T==='avatar')+'>Avatar</button><button data-a="tab" data-v="orb"'+on(T==='orb')+'>Bola melayang</button></div>';
+h+='<div class="r">Bentuk</div><div class="w">';
+for(var k in SHN)h+='<button data-a="shape" data-v="'+k+'"'+on(c.shape===k)+'>'+SHN[k]+'</button>';
+h+='</div><div class="r">Ukuran: <span id="sk-sv">'+sz+'</span> px</div><input id="sk-size" type="range" min="24" max="160" value="'+sz+'">';
+h+='<div class="r">Warna</div><div class="w"><button data-a="color" data-v="x"'+on(!c.color)+'>Asli</button>';
+COL.forEach(function(x){h+='<button class="c'+(c.color===x?' on':'')+'" data-a="color" data-v="'+x+'" style="background:'+x+'"></button>'});
+h+='<input id="sk-col" type="color" value="'+(c.color||'#3b82f6')+'"></div>';
+h+='<div class="r">Isi (teks, emoji, atau foto)</div><div class="w"><button data-a="txt" data-v=""'+on(c.txt==='')+'>Kosong</button>';
+EM.forEach(function(x){h+='<button data-a="txt" data-v="'+x+'"'+on(c.txt===x&&!c.img)+'>'+x+'</button>'});
+h+='</div><div class="w" style="margin-top:8px"><input id="sk-txt" type="text" maxlength="4" placeholder="Teks sendiri"><button data-a="photo">Foto sendiri</button>'+(c.img?'<button data-a="noimg">Hapus foto</button>':'')+'</div>';
+h+='<div class="w" style="margin-top:12px"><button data-a="reset">Kembalikan ke asli</button></div>';
+sh.innerHTML=h}
+function commit(){save();repaint();render()}
+sh.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;
+var a=b.getAttribute('data-a'),v=b.getAttribute('data-v'),c=cur();
+if(a==='close'){sh.style.display='none';return}
+if(a==='tab')T=v;else if(a==='shape')c.shape=v;
+else if(a==='color'){if(v==='x')delete c.color;else c.color=v}
+else if(a==='txt'){c.txt=v;delete c.img}
+else if(a==='noimg')delete c.img;
+else if(a==='reset')S[T]={};
+else if(a==='photo'){fi.click();return}
+commit()});
+sh.addEventListener('input',function(e){var t=e.target,c=cur();
+if(t.id==='sk-size'){c.size=+t.value;document.getElementById('sk-sv').textContent=t.value}
+else if(t.id==='sk-col'){c.color=t.value}
+else if(t.id==='sk-txt'){c.txt=t.value;delete c.img}else return;
+save();repaint()});
+fi.onchange=function(){var f=fi.files&&fi.files[0];if(!f)return;var r=new FileReader();
+r.onload=function(){var im=new Image();im.onload=function(){var cv=document.createElement('canvas');cv.width=cv.height=160;
+var x=cv.getContext('2d'),s=Math.min(im.width,im.height);
+x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,160,160);
+cur().img=cv.toDataURL('image/jpeg',.85);delete cur().txt;commit()};im.src=r.result};
+r.readAsDataURL(f);fi.value=''};
+function show(){render();sh.style.display='block'}
+var b=document.createElement('button');b.id='sk-btn';b.type='button';b.textContent='Skin';
+var hp=[].slice.call(document.querySelectorAll('button')).filter(function(x){return x.textContent.trim()==='Hapus'})[0];
+if(hp&&hp.parentNode){b.className=hp.className;hp.parentNode.insertBefore(b,hp)}
+else b.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;padding:6px 10px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7';
+if(!b.parentNode)document.body.appendChild(b);
+b.addEventListener('click',function(){T='avatar';show()});
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-sk="avatar"]');if(a&&!inSheet(a)){T='avatar';show()}});
+var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,400)}).observe(document.body,{childList:true,subtree:true});
+scan();setTimeout(scan,700);setTimeout(scan,2000);
+}catch(err){console.log('skin-patch error',err)}})();
+</script>
 </body>
 </html>
