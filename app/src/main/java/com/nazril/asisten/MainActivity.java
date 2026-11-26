@@ -38,6 +38,10 @@ public class MainActivity extends Activity {
                                                                                 .build();
 
                                                                                         w = new WebView(this);
+                                                                                                android.widget.Button shapeBtn = new android.widget.Button(this);
+                                                                                                shapeBtn.setText("Bentuk Robot");
+                                                                                                shapeBtn.setOnClickListener(vv -> startActivity(new android.content.Intent(this, ShapeActivity.class)));
+                                                                                                ((android.view.ViewGroup) w).addView(shapeBtn);
                                                                                                 setContentView(w);
 
                                                                                                         WebSettings s = w.getSettings();
