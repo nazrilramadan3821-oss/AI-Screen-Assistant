@@ -535,5 +535,57 @@ var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,400)}
 scan();setTimeout(scan,700);setTimeout(scan,2000);
 }catch(err){console.log('skin-patch error',err)}})();
 </script>
+<script id="mode-patch">
+(function(){
+var M=[
+["chat","AI Chat",""],
+["soal","Pemecah Soal","Mode Pemecah Soal: selesaikan soal langkah demi langkah, tulis rumus yang dipakai, lalu beri jawaban akhir yang jelas."],
+["prog","Programmer","Mode Programmer: bantu menulis, menjelaskan, dan memperbaiki kode. Beri contoh kode dalam blok kode dan jelaskan singkat cara kerjanya."],
+["trans","Terjemahan","Mode Terjemahan: terjemahkan teks pengguna. Jika teks berbahasa Indonesia, terjemahkan ke Inggris. Jika bahasa lain, terjemahkan ke Indonesia. Beri hasil terjemahan saja tanpa penjelasan tambahan kecuali diminta."]
+];
+var cur="chat";
+try{cur=localStorage.getItem("ai-mode")||"chat";}catch(e){}
+function prompt(){for(var i=0;i<M.length;i++)if(M[i][0]===cur)return M[i][2];return "";}
+var of=window.fetch;
+window.fetch=function(u,o){
+try{
+var p=prompt();
+if(p&&typeof u==="string"&&u.indexOf("generativelanguage")>-1&&o&&typeof o.body==="string"){
+var b=JSON.parse(o.body);
+var si=b.systemInstruction||b.system_instruction;
+if(si&&si.parts&&si.parts[0]){si.parts[0].text+=" "+p;o.body=JSON.stringify(b);}
+}
+}catch(e){}
+return of.call(this,u,o);
+};
+function build(){
+var t=document.getElementById("txt");
+if(!t||document.getElementById("mode-bar"))return;
+var host=t.parentNode;
+if(!host||!host.parentNode)return;
+var bar=document.createElement("div");
+bar.id="mode-bar";
+bar.style.cssText="display:flex;gap:6px;overflow-x:auto;padding:6px 8px";
+function paint(){
+for(var i=0;i<bar.children.length;i++){
+var on=bar.children[i].getAttribute("data-m")===cur;
+bar.children[i].style.background=on?"#3b82f6":"rgba(127,127,127,.18)";
+bar.children[i].style.color=on?"#fff":"inherit";
+}
+}
+M.forEach(function(m){
+var b=document.createElement("button");
+b.textContent=m[1];
+b.setAttribute("data-m",m[0]);
+b.style.cssText="border:1px solid rgba(127,127,127,.35);border-radius:16px;padding:6px 12px;font-size:13px;white-space:nowrap;flex:none";
+b.onclick=function(){cur=m[0];try{localStorage.setItem("ai-mode",cur);}catch(e){}paint();};
+bar.appendChild(b);
+});
+host.parentNode.insertBefore(bar,host);
+paint();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",build);else build();
+})();
+</script>
 </body>
 </html>
