@@ -42,7 +42,7 @@ public class OverlayController {
 
   public void showBubble() {
     if (bubble != null) return;
-    TextView t = new TextView(ctx);
+    RobotView t = new RobotView(ctx);
     t.setText("AI");
     t.setTextColor(Color.WHITE);
     t.setTextSize(18);
