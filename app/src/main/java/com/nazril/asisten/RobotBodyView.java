@@ -33,6 +33,7 @@ public class RobotBodyView extends View {
 
     @Override protected void onDraw(Canvas c) {
         long now = System.currentTimeMillis();
+        shape = getContext().getSharedPreferences("robot", Context.MODE_PRIVATE).getInt("shape", shape);
         float t = (now % 100000) / 1000f;
         long idle = now - lastTouch;
         boolean sleep = idle > 60000, play = !sleep && idle > 15000;
