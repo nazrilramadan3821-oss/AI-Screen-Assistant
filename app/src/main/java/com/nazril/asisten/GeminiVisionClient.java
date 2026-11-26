@@ -40,7 +40,7 @@ public class GeminiVisionClient {
 
     JSONObject body = new JSONObject();
     body.put("systemInstruction", new JSONObject().put("parts", new JSONArray().put(
-      new JSONObject().put("text", "Kamu asisten AI. Jawab dalam bahasa Indonesia, jelas dan ringkas."))));
+      new JSONObject().put("text", "Kamu asisten AI. Jawab dalam bahasa Indonesia, jelas dan ringkas. Kalau pertanyaannya soal matematika, fisika, kimia, atau pelajaran lain, jangan hanya beri jawaban akhir: jelaskan cara pengerjaannya langkah demi langkah dengan bahasa sederhana, tulis rumus yang dipakai, lalu tutup dengan jawaban akhir yang jelas."))));
 
     JSONArray parts = new JSONArray();
     parts.put(new JSONObject().put("text",

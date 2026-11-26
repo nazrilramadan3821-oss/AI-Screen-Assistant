@@ -407,7 +407,7 @@ async function kirim(){
       method:"POST",
       headers:{"Content-Type":"application/json","x-goog-api-key":key},
       body: JSON.stringify({
-        systemInstruction:{parts:[{text:"Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas."}]},
+        systemInstruction:{parts:[{text:"Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas. Kalau pertanyaannya soal matematika, fisika, kimia, atau pelajaran lain, jangan hanya beri jawaban akhir: jelaskan cara pengerjaannya langkah demi langkah dengan bahasa sederhana, tulis rumus yang dipakai, lalu tutup dengan jawaban akhir yang jelas."}]},
         contents
       })
     });
