@@ -60,6 +60,16 @@ button:disabled{opacity:.5}
 .hsRow{display:flex;gap:6px}
 .hsRow .hsItem{flex:1;text-align:left;background:#0a0f1f;border:1px solid #2a3358;font-size:13px}
 .hsRow .hsDel{background:#3a2030;padding:10px 12px}
+
+/* === rapikan tampilan === */
+div:has(> #send){display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px}
+div:has(> #send) > :is(textarea,input:not([type])),
+div:has(> #send) > input[type=text]{order:-1;flex:1 1 100%;min-width:0;min-height:44px;box-sizing:border-box}
+div:has(> #send) > .ic{flex:0 0 auto}
+div:has(> #send) > #send{margin-left:auto;flex:0 0 auto}
+header button,.top button,#skinBtn,button[id*="kin"]{
+  background:transparent;color:inherit;border:1px solid rgba(255,255,255,.15);
+  border-radius:999px;padding:6px 14px;font:inherit}
 </style>
 </head>
 <body>
