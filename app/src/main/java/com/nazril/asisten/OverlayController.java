@@ -42,7 +42,7 @@ public class OverlayController {
 
   public void showBubble() {
     if (bubble != null) return;
-    RobotView t = new RobotView(ctx);
+    RobotBodyView t = new RobotBodyView(ctx);
     t.setText("AI");
     t.setTextColor(Color.WHITE);
     t.setTextSize(18);
@@ -77,6 +77,7 @@ public class OverlayController {
           tx = e.getRawX();
           ty = e.getRawY();
           moved = false;
+          ((RobotBodyView) v).poke();
           ui.postDelayed(stopper, 1000);
         } else if (a == MotionEvent.ACTION_MOVE) {
           float dx = e.getRawX() - tx;

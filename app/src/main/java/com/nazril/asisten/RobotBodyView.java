@@ -90,4 +90,8 @@ public class RobotBodyView extends View {
         }
         postInvalidateOnAnimation();
     }
+    @Override protected void onMeasure(int w, int h) {
+        int d = (int) (getResources().getDisplayMetrics().density * 72);
+        setMeasuredDimension(resolveSize(d, w), resolveSize(d, h));
+    }
 }
