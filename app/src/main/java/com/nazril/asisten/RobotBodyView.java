@@ -95,4 +95,8 @@ public class RobotBodyView extends View {
         int d = (int) (getResources().getDisplayMetrics().density * 72);
         setMeasuredDimension(resolveSize(d, w), resolveSize(d, h));
     }
+    public void setText(CharSequence s) { }
+    public void setTextColor(int c) { }
+    public void setTextSize(float s) { }
+    public void setGravity(int g) { }
 }
