@@ -44,4 +44,4 @@ app.get("/api/last.jpg", (req, res) => {
   res.set({ "Content-Type": "image/jpeg", "Content-Disposition": "attachment; filename=gambar-ai.jpg" });
   res.send(Buffer.from(lastImage, "base64"));
 });
-app.listen(3000, () => console.log("AI Image Server berjalan di port 3000"));
+app.listen(process.env.PORT || 3000, () => console.log("AI Image Server berjalan di port 3000"));
