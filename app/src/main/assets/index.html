@@ -790,5 +790,45 @@ if(hp&&hp.parentNode){b.className=hp.className;hp.parentNode.insertBefore(b,hp)}
 else b.style.cssText='position:fixed;top:48px;right:8px;z-index:2147483000;padding:6px 10px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7';
 })();
 </script>
+<style id="ui-rapi">
+header{flex-wrap:nowrap!important;justify-content:space-between}
+header b{white-space:nowrap}
+header #menuBtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:8px 14px;font:600 14px system-ui}
+#menuAtur{position:fixed;right:12px;top:64px;width:min(300px,calc(100vw - 24px));max-height:70vh;overflow:auto;z-index:19;display:flex;flex-direction:column;gap:6px;padding:10px;background:#121a33;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px #000a}
+#menuAtur[hidden]{display:none}
+#menuAtur button{display:block;width:100%;margin:0!important;text-align:left;background:#0b1020!important;border:1px solid var(--line)!important;color:var(--text)!important;border-radius:12px!important;padding:12px 14px!important;font:15px system-ui!important}
+#menuAtur #key::before{content:"\1F511  "}
+#menuAtur #namaai::before{content:"\1F916  "}
+#menuAtur #sapaan::before{content:"\1F4AC  "}
+#menuAtur #ukuranbola::before{content:"\1F4CF  "}
+#menuAtur #sk-btn::before{content:"\2728  "}
+#menuAtur #kostum-btn::before{content:"\1F3A8  "}
+#menuAtur #clear::before{content:"\1F5D1  "}
+#mode-bar{overflow-x:auto;padding:0 0 8px!important}
+#mode-bar button{flex:1 0 auto!important;padding:7px 8px!important;font-size:12px!important}
+#bar #row{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:0!important;align-items:stretch}
+#bar #row>#txt{grid-column:1/6;grid-row:1;width:100%}
+#bar #row>#send{grid-column:6;grid-row:1;margin:0;padding:0;width:100%;height:auto;min-height:44px;font-size:14px}
+#bar #row>.ic{grid-row:2;width:100%;height:54px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;font-size:19px}
+.ic::after{font:10px system-ui;color:var(--mut);margin-top:3px}
+#cam::after{content:"Foto"}#scr::after{content:"Layar"}#nkMic::after{content:"Bicara"}#nkSet::after{content:"Suara"}#hsBtn::after{content:"Riwayat"}#genBtn::after{content:"Gambar"}
+#nkOrb{bottom:200px!important}
+</style>
+<script>
+(function(){
+var h=document.querySelector("header"); if(!h) return;
+var m=document.createElement("div"); m.id="menuAtur"; m.hidden=true;
+var t=document.createElement("button"); t.id="menuBtn"; t.type="button"; t.textContent="\u2630 Menu";
+["key","namaai","sapaan","ukuranbola","sk-btn","kostum-btn","clear"].forEach(function(id){
+var b=document.getElementById(id); if(b) m.appendChild(b); });
+[].slice.call(h.querySelectorAll("button")).forEach(function(b){ m.appendChild(b); });
+h.appendChild(t); document.body.appendChild(m);
+var n={key:"Kunci API",namaai:"Nama AI",sapaan:"Jeda sapaan",ukuranbola:"Ukuran bola","sk-btn":"Tampilan aplikasi","kostum-btn":"Kostum bola",clear:"Hapus obrolan"};
+for(var id in n){ var b=document.getElementById(id); if(b) b.textContent=n[id]; }
+t.addEventListener("click",function(e){ e.stopPropagation(); m.hidden=!m.hidden; });
+m.addEventListener("click",function(e){ if(e.target.closest("button")) m.hidden=true; });
+document.addEventListener("click",function(e){ if(!m.contains(e.target)) m.hidden=true; });
+})();
+</script>
 </body>
 </html>
