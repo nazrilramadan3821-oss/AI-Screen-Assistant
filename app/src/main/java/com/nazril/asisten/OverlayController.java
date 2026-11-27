@@ -102,12 +102,14 @@ public class OverlayController {
 
     bubble = t;
     wm.addView(bubble, lp);
+mulaiSantai();
 RobotBodyView.bicaraBola = new java.util.function.Consumer<String>() { @Override public void accept(String x) { OverlayController.this.komentar(x); } };
   }
 
   public void setBubbleVisible(boolean visible) {
     if (bubble != null) {
-      bubble.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+      if (!visible) tutupGelembung();
+bubble.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
   }
 
@@ -137,7 +139,29 @@ private void tutupGelembung() {
 if (gelembungTutup != null) ui.removeCallbacks(gelembungTutup);
 if (gelembung != null) { try { wm.removeView(gelembung); } catch (Exception e) { } gelembung = null; }
 }
+private long terakhirBicara; private int kataTerakhir = -1;
+private final java.util.Random acak = new java.util.Random();
+private final String[] kataSantai = {
+"Kamu sedang apa sih?", "Kamu ngapain?", "Halo, aku masih di sini!",
+"Lagi sibuk ya?", "Ada soal yang bikin pusing?", "Ketuk aku kalau butuh bantuan.",
+"Jangan lupa minum, ya!", "Hmm, aku bosan nih...", "Semangat belajarnya!",
+"Istirahatkan matamu sebentar.", "Sudah makan belum?", "{nama} siap bantu!",
+"Kok aku dicuekin?", "Mau belajar apa hari ini?", "Pelan-pelan saja, pasti bisa!" };
+private final Runnable santai = new Runnable() { @Override public void run() {
+if (bubble == null) return;
+boolean panelBuka = panel != null && panel.isAttachedToWindow() && panel.getVisibility() == View.VISIBLE;
+android.os.PowerManager pm = (android.os.PowerManager) ctx.getSystemService(android.content.Context.POWER_SERVICE);
+if (bubble.getVisibility() == View.VISIBLE && !panelBuka && pm.isInteractive() && android.os.SystemClock.uptimeMillis() - terakhirBicara > 25000) {
+int i; do { i = acak.nextInt(kataSantai.length); } while (i == kataTerakhir);
+kataTerakhir = i;
+String n = ctx.getSharedPreferences("p", 0).getString("nama", "").trim();
+komentar(kataSantai[i].replace("{nama}", n.isEmpty() ? "Nino" : n));
+}
+ui.postDelayed(this, 30000 + acak.nextInt(30000));
+} };
+private void mulaiSantai() { ui.removeCallbacks(santai); ui.postDelayed(santai, 20000); }
 public void komentar(final String teks) {
+terakhirBicara = android.os.SystemClock.uptimeMillis();
 ui.post(new Runnable() { @Override public void run() {
 try {
 tutupGelembung();
