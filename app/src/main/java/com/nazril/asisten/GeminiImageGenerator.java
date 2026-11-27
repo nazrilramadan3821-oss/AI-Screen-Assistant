@@ -32,8 +32,7 @@ public final class GeminiImageGenerator {
         }
 
         String endpoint =
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            + "gemini-2.5-flash-image:generateContent";
+            "https://niko-gemini.nazril-niko.workers.dev/?model=gemini-3.1-flash-image";
 
         URL url = new URL(endpoint);
         HttpURLConnection conn =
@@ -47,7 +46,7 @@ public final class GeminiImageGenerator {
             conn.setRequestProperty(
                 "Content-Type", "application/json; charset=UTF-8"
             );
-            conn.setRequestProperty("x-goog-api-key", apiKey);
+            conn.setRequestProperty("x-app-token", apiKey);
 
             JSONObject part = new JSONObject();
             part.put("text",

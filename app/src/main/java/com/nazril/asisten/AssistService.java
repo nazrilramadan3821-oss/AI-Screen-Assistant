@@ -196,13 +196,56 @@ if (k.contains("quota") || k.contains("exhausted") || k.contains("429")) return 
 if (k.contains("overloaded") || k.contains("high demand") || k.contains("503")) return "Server Gemini sedang sibuk. Coba lagi sebentar.";
 return m;
 }
+  private volatile boolean mintaStop = false;
+  private android.widget.Button tombolStop;
+
+  private void tampilStop() {
+    if (tombolStop != null || dead) return;
+    android.widget.Button b = new android.widget.Button(this);
+    b.setText("■ STOP");
+    android.view.WindowManager.LayoutParams p = new android.view.WindowManager.LayoutParams(-2, -2,
+        android.os.Build.VERSION.SDK_INT >= 26
+            ? android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            : android.view.WindowManager.LayoutParams.TYPE_PHONE,
+        android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+        android.graphics.PixelFormat.TRANSLUCENT);
+    p.gravity = android.view.Gravity.TOP | android.view.Gravity.END;
+    p.y = 120;
+    b.setOnClickListener(v -> {
+      mintaStop = true;
+      sembunyiStop();
+      android.widget.Toast.makeText(this, "Menghentikan scan...", android.widget.Toast.LENGTH_SHORT).show();
+    });
+    try {
+      ((android.view.WindowManager) getSystemService(WINDOW_SERVICE)).addView(b, p);
+      tombolStop = b;
+    } catch (Exception e) {}
+  }
+
+  private void sembunyiStop() {
+    if (tombolStop == null) return;
+    try {
+      ((android.view.WindowManager) getSystemService(WINDOW_SERVICE)).removeView(tombolStop);
+    } catch (Exception e) {}
+    tombolStop = null;
+  }
+
+  private void akhiriScan() {
+    mintaStop = false;
+    sembunyiStop();
+    String hasil = semua.length() > 0 ? semua.toString() : "Scan dihentikan.";
+    if (semua.length() > 0) overlay.simpanRiwayat(hasil);
+    overlay.showPanel(hasil);
+  }
+
   private void geserLayar() {
 NikoAccess na = NikoAccess.inst;
 if (na == null || dead) return;
+if (mintaStop) { akhiriScan(); return; }
 android.util.DisplayMetrics d2 = getResources().getDisplayMetrics();
 float x = d2.widthPixels * 0.5f;
 na.swipe(x, d2.heightPixels * 0.78f, x, d2.heightPixels * 0.28f, 450);
-ui.postDelayed(() -> { if (dead) return; lanjut = true; onCaptureRequested(); }, 1500);
+ui.postDelayed(() -> { if (dead) return; if (mintaStop) { akhiriScan(); return; } lanjut = true; onCaptureRequested(); }, 1500);
 }
 private void done(String s) {
 String aksi = null, komen = null;
@@ -218,11 +261,13 @@ java.util.regex.Matcher ml = java.util.regex.Pattern.compile("\\s*\\[LANJUT\\]\\
 if (ml.find()) { lagi = true; s = s.substring(0, ml.start()); }
 if (!galat && !habis) { halaman++; if (semua.length() > 0) semua.append("\n\n"); semua.append(s.trim()); }
 RobotBodyView.aksiGlobal(aksi, komen);
-if (lagi && !galat && !habis && halaman < 6 && NikoAccess.inst != null) {
+if (lagi && !galat && !habis && halaman < 6 && NikoAccess.inst != null && !mintaStop) {
+tampilStop();
 overlay.hidePanel();
 ui.postDelayed(() -> geserLayar(), 300);
 return;
 }
+mintaStop = false; sembunyiStop();
 String tampil = semua.toString();
 if (tampil.isEmpty()) tampil = habis ? "Tidak ada yang berubah di layar." : s;
 else if (galat) tampil = tampil + "\n\n(" + s + ")";
@@ -233,6 +278,7 @@ overlay.showPanel(tampil);
 
   @Override
   public void onDestroy() {
+sembunyiStop();
     dead = true;
     ui.removeCallbacksAndMessages(null);
     if (overlay != null) overlay.destroy();

@@ -425,9 +425,9 @@ async function kirim(){
         parts.push({inline_data:{mime_type:"image/jpeg", data:m.image.split(",")[1]}});
       contents.push({role: m.role==="assistant" ? "model" : "user", parts});
     });
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent", {
+    const r = await fetch("https://niko-gemini.nazril-niko.workers.dev/?api=generativelanguage&model=" + MODEL, {
       method:"POST",
-      headers:{"Content-Type":"application/json","x-goog-api-key":key},
+      headers:{"Content-Type":"application/json","x-app-token":key},
       body: JSON.stringify({
         systemInstruction:{parts:[{text:"Namamu "+getNama()+". Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas. Kalau pertanyaannya soal matematika, fisika, kimia, atau pelajaran lain, jangan hanya beri jawaban akhir: jelaskan cara pengerjaannya langkah demi langkah dengan bahasa sederhana, tulis rumus yang dipakai, lalu tutup dengan jawaban akhir yang jelas."}]},
         contents
@@ -869,8 +869,8 @@ var ini=++sesi; kepala("Kuis latihan"); el("p","Nino sedang membuat soal...","re
 try{
 var key=getKey()||askKey(); if(!key) throw new Error("API Key belum diisi (Menu, Kunci API)");
 var perintah="Buat 5 soal latihan pilihan ganda BARU dalam bahasa Indonesia yang setingkat dan setopik dengan bahan di bawah. Ubah angka atau konteksnya, jangan menyalin soal aslinya. Pastikan hanya satu pilihan yang benar. Balas HANYA JSON array berbentuk [{\"soal\":\"...\",\"pilihan\":[\"...\",\"...\",\"...\",\"...\"],\"benar\":0,\"penjelasan\":\"...\"}] dengan benar berupa nomor pilihan 0 sampai 3. Tulis rumus dengan simbol biasa.\n\nBahan:\n"+bahan.slice(0,4000);
-var r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent",{method:"POST",
-headers:{"Content-Type":"application/json","x-goog-api-key":key},
+var r=await fetch("https://niko-gemini.nazril-niko.workers.dev/?api=generativelanguage&model=" + MODEL,{method:"POST",
+headers:{"Content-Type":"application/json","x-app-token":key},
 body:JSON.stringify({contents:[{role:"user",parts:[{text:perintah}]}],generationConfig:{responseMimeType:"application/json"}})});
 var d=await r.json(); if(!r.ok) throw new Error((d.error&&d.error.message)||"Terjadi kesalahan");
 var teks=d.candidates[0].content.parts.map(function(p){return p.text||""}).join("");
@@ -908,5 +908,8 @@ var tb=document.createElement("button"); tb.id="kuisBtn"; tb.type="button"; tb.t
 tb.onclick=function(){ awal(); }; menu.insertBefore(tb,menu.firstChild);
 })();
 </script>
+<script src="niko-engine/auto-solver.js"></script>
+<script src="niko-engine/ui.js"></script>
+<script src="niko-engine/intro.js"></script>
 </body>
 </html>
