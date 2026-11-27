@@ -115,6 +115,7 @@ header button,.top button,#skinBtn,button[id*="kin"]{
 <script>
 const MODEL = "gemini-flash-lite-latest";
 function getKey(){ try{return localStorage.getItem("gkey")||""}catch(e){return ""} }
+function getNama(){ try{return (localStorage.getItem("nama_ai")||"").trim()||"Nino"}catch(e){return "Nino"} }
 function askKey(){ const k = prompt("Tempel Gemini API Key (diawali AIza). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{Android.saveKey(k.trim()); Android.saveKey(k.trim()); localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
 
 const chat = document.getElementById("chat"), txt = document.getElementById("txt"),
@@ -420,7 +421,7 @@ async function kirim(){
       method:"POST",
       headers:{"Content-Type":"application/json","x-goog-api-key":key},
       body: JSON.stringify({
-        systemInstruction:{parts:[{text:"Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas. Kalau pertanyaannya soal matematika, fisika, kimia, atau pelajaran lain, jangan hanya beri jawaban akhir: jelaskan cara pengerjaannya langkah demi langkah dengan bahasa sederhana, tulis rumus yang dipakai, lalu tutup dengan jawaban akhir yang jelas."}]},
+        systemInstruction:{parts:[{text:"Namamu "+getNama()+". Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas. Kalau pertanyaannya soal matematika, fisika, kimia, atau pelajaran lain, jangan hanya beri jawaban akhir: jelaskan cara pengerjaannya langkah demi langkah dengan bahasa sederhana, tulis rumus yang dipakai, lalu tutup dengan jawaban akhir yang jelas."}]},
         contents
       })
     });
@@ -443,6 +444,9 @@ send.onclick = kirim;
 txt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !/Mobi|Android/i.test(navigator.userAgent)){ e.preventDefault(); kirim(); } });
 txt.addEventListener("input", () => { txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight,120) + "px"; });
 document.getElementById("key").onclick = () => askKey();
+{ const k=document.getElementById("key"), b=k.cloneNode(false); b.id="namaai"; b.textContent="Nama AI"; k.after(b);
+b.onclick=()=>{ const n=prompt("Nama AI (kosongkan untuk Nino):",getNama()); if(n===null) return; const v=n.trim().slice(0,30);
+try{localStorage.setItem("nama_ai",v)}catch(e){} try{Android.saveName(v)}catch(e){} }; }
 document.getElementById("clear").onclick = () => { history = []; setImage(null); showEmpty(); };
   document.getElementById("voiceBtn").onclick = function() {
   if (voiceEnabled) {

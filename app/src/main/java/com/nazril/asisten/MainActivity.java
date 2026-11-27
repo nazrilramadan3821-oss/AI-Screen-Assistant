@@ -199,6 +199,10 @@ public String simpanGambar(String data) {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          REQ_SCREEN_CAPTURE);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  });
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      }
+@android.webkit.JavascriptInterface
+public void saveName(String n) {
+MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit().putString("nama", n == null ? "" : n.trim()).apply();
+}
 @JavascriptInterface
 public void saveKey(String k) {
   getSharedPreferences("p", MODE_PRIVATE).edit()
