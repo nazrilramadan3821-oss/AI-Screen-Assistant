@@ -444,6 +444,9 @@ send.onclick = kirim;
 txt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !/Mobi|Android/i.test(navigator.userAgent)){ e.preventDefault(); kirim(); } });
 txt.addEventListener("input", () => { txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight,120) + "px"; });
 document.getElementById("key").onclick = () => askKey();
+{ const k=document.getElementById("key"), b=k.cloneNode(false); b.id="ukuranbola"; b.textContent="Ukuran"; k.after(b); k.parentElement.style.flexWrap="wrap";
+b.onclick=()=>{ const n=prompt("Ukuran bola: 1 = Kecil, 2 = Sedang, 3 = Besar","2"); if(!["1","2","3"].includes(n)) return;
+try{Android.saveUkuran(n)}catch(e){} }; }
 { const k=document.getElementById("key"), b=k.cloneNode(false); b.id="sapaan"; b.textContent="Sapaan"; k.after(b);
 b.onclick=()=>{ let l="45"; try{l=localStorage.getItem("jeda_sapa")||"45"}catch(e){}
 const n=prompt("Jeda sapaan dalam detik (minimal 30, isi 0 untuk mematikan):",l); if(n===null) return; const v=String(Math.max(0,parseInt(n,10)||0));

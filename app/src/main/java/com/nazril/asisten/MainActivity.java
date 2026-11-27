@@ -207,6 +207,10 @@ MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE
 public void saveJeda(String n) {
 MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit().putString("jeda", n).apply();
 }
+@android.webkit.JavascriptInterface
+public void saveUkuran(String n) {
+MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit().putString("ukuran", n).apply();
+}
 @JavascriptInterface
 public void saveKey(String k) {
   getSharedPreferences("p", MODE_PRIVATE).edit()

@@ -54,7 +54,7 @@ public class OverlayController {
     t.setBackground(g);
 
     final WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
-      dp(56), dp(56),
+      ukuranBola(), ukuranBola(),
       WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
       WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
       PixelFormat.TRANSLUCENT);
@@ -142,7 +142,7 @@ try {
 WindowManager.LayoutParams bl = (WindowManager.LayoutParams) bubble.getLayoutParams();
 int w = tv.getMeasuredWidth(), h = tv.getMeasuredHeight();
 int sw = ctx.getResources().getDisplayMetrics().widthPixels;
-int x = Math.max(0, Math.min(bl.x + dp(28) - w / 2, sw - w));
+int x = Math.max(0, Math.min(bl.x + bl.width / 2 - w / 2, sw - w));
 int y = bl.y - h - dp(6);
 if (y < 0) y = bl.y + bl.height + dp(6);
 if (x != gp.x || y != gp.y) { gp.x = x; gp.y = y; wm.updateViewLayout(tv, gp); }
@@ -188,6 +188,10 @@ if (h >= 11 && h < 15) return "Selamat siang! Jangan lupa makan.";
 if (h >= 15 && h < 18) return "Selamat sore! Capek tidak?";
 return "Sudah malam, belum tidur?";
 }
+private int ukuranBola() {
+String u = ctx.getSharedPreferences("p", 0).getString("ukuran", "2");
+return dp("1".equals(u) ? 44 : "3".equals(u) ? 80 : 56);
+}
 private void mulaiSantai() { ui.removeCallbacks(santai); ui.postDelayed(santai, 20000); }
 public void komentar(final String teks) {
 terakhirBicara = android.os.SystemClock.uptimeMillis();
@@ -205,7 +209,7 @@ tv.measure(View.MeasureSpec.makeMeasureSpec(dp(240), View.MeasureSpec.AT_MOST), 
 int w = tv.getMeasuredWidth(), h = tv.getMeasuredHeight();
 WindowManager.LayoutParams bl = (WindowManager.LayoutParams) bubble.getLayoutParams();
 int sw = ctx.getResources().getDisplayMetrics().widthPixels;
-int x = Math.max(0, Math.min(bl.x + dp(28) - w / 2, sw - w));
+int x = Math.max(0, Math.min(bl.x + bl.width / 2 - w / 2, sw - w));
 int y = bl.y - h - dp(6);
 if (y < 0) y = bl.y + bl.height + dp(6);
 WindowManager.LayoutParams gp = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
