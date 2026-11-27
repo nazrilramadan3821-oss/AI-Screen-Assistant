@@ -135,6 +135,21 @@ return sb;
 } catch (Exception e) { return t; }
 }
 private android.widget.TextView gelembung; private Runnable gelembungTutup;
+private void ikutiBola(final android.widget.TextView tv, final WindowManager.LayoutParams gp) {
+ui.postDelayed(new Runnable() { @Override public void run() {
+if (gelembung != tv || bubble == null) return;
+try {
+WindowManager.LayoutParams bl = (WindowManager.LayoutParams) bubble.getLayoutParams();
+int w = tv.getMeasuredWidth(), h = tv.getMeasuredHeight();
+int sw = ctx.getResources().getDisplayMetrics().widthPixels;
+int x = Math.max(0, Math.min(bl.x + dp(28) - w / 2, sw - w));
+int y = bl.y - h - dp(6);
+if (y < 0) y = bl.y + bl.height + dp(6);
+if (x != gp.x || y != gp.y) { gp.x = x; gp.y = y; wm.updateViewLayout(tv, gp); }
+ui.postDelayed(this, 30);
+} catch (Exception e) { }
+} }, 30);
+}
 private void tutupGelembung() {
 if (gelembungTutup != null) ui.removeCallbacks(gelembungTutup);
 if (gelembung != null) { try { wm.removeView(gelembung); } catch (Exception e) { } gelembung = null; }
@@ -200,6 +215,7 @@ android.graphics.PixelFormat.TRANSLUCENT);
 gp.gravity = Gravity.TOP | Gravity.START; gp.x = x; gp.y = y;
 wm.addView(tv, gp);
 gelembung = tv;
+ikutiBola(tv, gp);
 gelembungTutup = new Runnable() { @Override public void run() { tutupGelembung(); } };
 ui.postDelayed(gelembungTutup, Math.min(9000, 3000 + 70L * teks.length()));
 } catch (Exception e) { }
