@@ -887,6 +887,7 @@ var urut=[0,1,2,3]; for(var i=3;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),
 var tombol=urut.map(function(asli,i){
 var teks=String(q.pilihan[asli]).replace(/^\s*[A-Da-d][.)]\s+/,"");
 var b=el("button","ABCD"[i]+".  "+teks); b.onclick=function(){ jawab(asli,b); }; b.dataset.asli=asli; return b; });
+var d=el("button","Demo AI Jawab","utama"); d.onclick=function(){ d.disabled=true; var i=urut.indexOf(Number(q.benar)); if(i>-1) tombol[i].click(); };
 function jawab(pilih,b){
 var tepat=pilih===q.benar; if(tepat) skor++;
 tombol.forEach(function(t){ t.disabled=true; if(Number(t.dataset.asli)===q.benar) t.className="benar"; });
