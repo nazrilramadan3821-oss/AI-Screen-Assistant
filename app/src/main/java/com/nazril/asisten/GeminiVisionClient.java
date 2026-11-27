@@ -44,7 +44,7 @@ public class GeminiVisionClient {
 
     JSONArray parts = new JSONArray();
     parts.put(new JSONObject().put("text",
-      "Lihat tangkapan layar ini. Jika ada soal hitungan atau tugas, jangan langsung beri cara dan jawaban akhir; sebut soalnya lalu beri petunjuk pertama saja. Jika ada pertanyaan biasa, jawab singkat. Jika tidak, rangkum isinya."));
+      "Lihat tangkapan layar ini. ATURAN WAJIB: kalau di layar ada soal, latihan, atau tugas, DILARANG menulis jawaban, hasil hitungan, angka hasil, atau cara pengerjaan. Balas maksimal 3 kalimat: sebut singkat itu soal apa, beri satu petunjuk kecil untuk langkah pertama tanpa menyebut hasil, lalu ajak pengguna mencoba sendiri. Kalau bukan soal, rangkum isinya dengan singkat. Tulis rumus dengan simbol biasa, tanpa LaTeX."));
     parts.put(new JSONObject().put("inline_data", new JSONObject()
       .put("mime_type", "image/jpeg")
       .put("data", b64)));
