@@ -173,7 +173,7 @@ int i; do { i = acak.nextInt(kataSantai.length); } while (i == kataTerakhir);
 kataTerakhir = i;
 String n = ctx.getSharedPreferences("p", 0).getString("nama", "").trim();
 String k = acak.nextInt(3) == 0 ? sapaanWaktu() : kataSantai[i];
-RobotBodyView.aksiGlobal(aksiUntuk(k), k.replace("{nama}", n.isEmpty() ? "Nino" : n));
+NikoOtak.santai(ctx, aksiUntuk(k), k.replace("{nama}", n.isEmpty() ? "Nino" : n));
 }
 int j = jedaSapaan();
 ui.postDelayed(this, j == 0 ? 15000L : j * 1000L + acak.nextInt(10000));

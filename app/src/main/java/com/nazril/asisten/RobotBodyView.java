@@ -113,7 +113,36 @@ long ms = 3000 + 70L * teks.length();
 web.evaluateJavascript("try{robotBicara(" + org.json.JSONObject.quote(teks) + "," + ms + ")}catch(e){}", null);
 }
 }
-public void poke() {
+public static void aksiAIGlobal(String teks, org.json.JSONArray langkah) {
+        if (inst != null) inst.aksiAI(teks, langkah);
+    }
+
+    public void aksiAI(String teks, org.json.JSONArray langkah) {
+        aksi(null, teks);
+        if (langkah == null || langkah.length() == 0) return;
+        animate().cancel();
+        jalankanLangkah(langkah, 0, getResources().getDisplayMetrics().density);
+    }
+
+    private void jalankanLangkah(final org.json.JSONArray a, final int i, final float d) {
+        if (i >= a.length() || i >= 8) {
+            animate().translationX(0).translationY(0).rotation(0).scaleX(1f).scaleY(1f).setDuration(300).start();
+            return;
+        }
+        org.json.JSONObject o = a.optJSONObject(i);
+        if (o == null) { jalankanLangkah(a, i + 1, d); return; }
+        float x = (float) Math.max(-30, Math.min(30, o.optDouble("x", 0))) * d;
+        float y = (float) Math.max(-30, Math.min(30, o.optDouble("y", 0))) * d;
+        float r = (float) Math.max(-40, Math.min(40, o.optDouble("putar", 0)));
+        float sk = (float) Math.max(0.8, Math.min(1.3, o.optDouble("skala", 1)));
+        long ms = Math.max(150, Math.min(800, o.optLong("ms", 300)));
+        animate().translationX(x).translationY(y).rotation(r).scaleX(sk).scaleY(sk)
+            .setDuration(ms).withEndAction(new Runnable() {
+                public void run() { jalankanLangkah(a, i + 1, d); }
+            }).start();
+    }
+
+    public void poke() {
         lastTouch = System.currentTimeMillis();
         if (web != null && shape == SHAPE3D) web.evaluateJavascript("poke()", null);
     }
