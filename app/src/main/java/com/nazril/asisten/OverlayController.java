@@ -61,7 +61,7 @@ public class OverlayController {
     lp.gravity = Gravity.TOP | Gravity.START;
         lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
     lp.x = dp(8);
-    lp.y = dp(200);
+    lp.y = dp(200); aiLp = lp; aiView = t; aktif = new java.lang.ref.WeakReference<OverlayController>(this);
 ukuranLsn = new android.content.SharedPreferences.OnSharedPreferenceChangeListener() {
 public void onSharedPreferenceChanged(android.content.SharedPreferences sp, String k) {
 if (!"ukuran".equals(k)) return;
@@ -198,6 +198,60 @@ if (h >= 11 && h < 15) return "Selamat siang! Jangan lupa makan.";
 if (h >= 15 && h < 18) return "Selamat sore! Capek tidak?";
 return "Sudah malam, belum tidur?";
 }
+public static java.lang.ref.WeakReference<OverlayController> aktif;
+private WindowManager.LayoutParams aiLp;
+private View aiView;
+private android.animation.ValueAnimator aiAnim;
+private int aiGen = 0, aiBx, aiBy;
+private boolean aiJalan = false;
+
+public void jalankanAI(String teks, org.json.JSONArray langkah) {
+RobotBodyView.aksiGlobal(null, teks);
+aiGen++;
+if (aiAnim != null) aiAnim.cancel();
+if (aiLp == null || aiView == null || langkah == null || langkah.length() == 0) return;
+if (!aiJalan) { aiBx = aiLp.x; aiBy = aiLp.y; }
+aiJalan = true;
+aiStep(langkah, 0, aiGen);
+}
+
+private void aiStep(final org.json.JSONArray a, final int i, final int gen) {
+if (gen != aiGen || aiLp == null || aiView == null) return;
+if (i >= a.length() || i >= 8) { aiJalan = false; aiKe(aiBx, aiBy, 0f, 350, null, gen); return; }
+org.json.JSONObject o = a.optJSONObject(i);
+if (o == null) { aiStep(a, i + 1, gen); return; }
+float d = ctx.getResources().getDisplayMetrics().density * skala() * 2f;
+int x = aiBx + Math.round((float) Math.max(-30, Math.min(30, o.optDouble("x", 0))) * d);
+int y = aiBy + Math.round((float) Math.max(-30, Math.min(30, o.optDouble("y", 0))) * d);
+float r = (float) Math.max(-40, Math.min(40, o.optDouble("putar", 0)));
+long ms = Math.max(150, Math.min(800, o.optLong("ms", 300)));
+aiKe(x, y, r, ms, new Runnable() { public void run() { aiStep(a, i + 1, gen); } }, gen);
+}
+
+private void aiKe(int x, int y, float rot, long ms, final Runnable end, final int gen) {
+android.util.DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+final int x1 = Math.max(0, Math.min(x, dm.widthPixels - aiLp.width));
+final int y1 = Math.max(0, Math.min(y, dm.heightPixels - aiLp.height));
+final int x0 = aiLp.x, y0 = aiLp.y;
+final float r0 = aiView.getRotation(), r1 = rot;
+aiAnim = android.animation.ValueAnimator.ofFloat(0f, 1f);
+aiAnim.setDuration(ms);
+aiAnim.addUpdateListener(new android.animation.ValueAnimator.AnimatorUpdateListener() {
+public void onAnimationUpdate(android.animation.ValueAnimator va) {
+float f = (Float) va.getAnimatedValue();
+try {
+aiLp.x = x0 + Math.round((x1 - x0) * f);
+aiLp.y = y0 + Math.round((y1 - y0) * f);
+aiView.setRotation(r0 + (r1 - r0) * f);
+wm.updateViewLayout(aiView, aiLp);
+} catch (Exception e) { }
+}});
+aiAnim.addListener(new android.animation.AnimatorListenerAdapter() {
+public void onAnimationEnd(android.animation.Animator an) { if (gen == aiGen && end != null) end.run(); }
+});
+aiAnim.start();
+}
+
 private android.content.SharedPreferences.OnSharedPreferenceChangeListener ukuranLsn;
 public float skala() {
 String u = ctx.getSharedPreferences("p", 0).getString("ukuran", "2");

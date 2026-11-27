@@ -31,7 +31,7 @@ public class NikoOtak {
       } catch (Exception e) { t = null; l = null; }
       final String ft = t; final JSONArray fl = l;
       UI.post(new Runnable() { public void run() {
-        if (ft != null) RobotBodyView.aksiAIGlobal(ft, fl);
+        if (ft != null) { OverlayController oc = OverlayController.aktif == null ? null : OverlayController.aktif.get(); if (oc != null) oc.jalankanAI(ft, fl); else RobotBodyView.aksiAIGlobal(ft, fl); }
         else RobotBodyView.aksiGlobal(aksiLama, teksLama);
       }});
     }}).start();
