@@ -1,0 +1,88 @@
+
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const OpenAI = require("openai");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
+
+const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+});
+
+const styles = {
+      "3D": "high quality 3D render, detailed 3D character and lighting",
+        "Anime": "beautiful anime illustration",
+          "Kartun": "colorful cartoon illustration",
+            "Realistis": "photorealistic image",
+              "Poster": "professional graphic poster design",
+                "Edukasi": "clear educational illustration",
+                  "Lukisan": "traditional artistic painting",
+                    "Fantasi": "fantasy concept art",
+                      "Pixel Art": "detailed pixel art"
+};
+
+app.get("/", (req, res) => {
+      res.json({
+            status: "online",
+                service: "AI Image Generator"
+      });
+});
+
+app.post("/generate-image", async (req, res) => {
+      try {
+            const { prompt, style = "3D" } = req.body || {};
+
+                if (typeof prompt !== "string" || !prompt.trim()) {
+                          return res.status(400).json({
+                                    error: "Deskripsi gambar wajib diisi."
+                          });
+                }
+
+                    if (prompt.length > 1500) {
+                              return res.status(400).json({
+                                        error: "Deskripsi maksimal 1500 karakter."
+                              });
+                    }
+
+                        const styleText = styles[style] || styles["3D"];
+
+                            const result = await client.images.generate({
+                                      model: "gpt-image-2",
+                                            prompt: `${prompt.trim()}. Style: ${styleText}.`,
+                                                  size: "1024x1024",
+                                                        quality: "low"
+                            });
+
+                                const image = result.data?.[0]?.b64_json;
+
+                                    if (!image) {
+                                              throw new Error("OpenAI tidak mengembalikan gambar.");
+                                    }
+
+                                        res.json({
+                                                  success: true,
+                                                        image: `data:image/png;base64,${image}`
+                                        });
+
+      } catch (error) {
+            console.error("Image generation error:", error.message);
+
+                res.status(500).json({
+                          error: "Gagal membuat gambar. Periksa API Key, saldo API, dan konfigurasi model."
+                });
+      }
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+      console.log(`AI Image Server berjalan di port ${PORT}`);
+});
+
+      })
+})

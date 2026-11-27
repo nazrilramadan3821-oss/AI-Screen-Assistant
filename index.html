@@ -706,5 +706,133 @@ document.body.appendChild(d);
 }
 })();
 </script>
+
+<style>
+/* NIKO_MODE_SWITCH_V1 */
+#niko-float{
+ position:fixed;right:22px;bottom:100px;z-index:2147483000;
+ font-family:Arial,sans-serif;color:white;
+}
+#niko-core{
+ width:76px;height:76px;border-radius:50%;
+ background:radial-gradient(circle at 30% 25%,#a8dcff,#2387ff 48%,#0750c8);
+ box-shadow:0 0 22px #168cff, inset -7px -9px 18px #003c9b;
+ display:flex;align-items:center;justify-content:center;
+ cursor:pointer;transition:.35s;position:relative;
+}
+#niko-core.ball{animation:nikoPulse 2s infinite}
+@keyframes nikoPulse{50%{transform:scale(1.09);box-shadow:0 0 35px #168cff}}
+#niko-core.robot{
+ width:82px;height:82px;border-radius:27px;
+ background:linear-gradient(145deg,#8bd5ff,#1765d5);
+}
+#niko-face{display:flex;gap:12px;align-items:center}
+.niko-eye{width:10px;height:17px;background:white;border-radius:50%}
+#niko-mouth{position:absolute;width:20px;height:5px;border-radius:50%;
+ background:#062d77;bottom:19px}
+#niko-core.robot.speaking #niko-mouth{
+ animation:nikoTalk .18s infinite alternate}
+@keyframes nikoTalk{to{height:13px}}
+#niko-tools{display:flex;gap:6px;margin-top:9px}
+#niko-tools button{
+ border:1px solid #398fff;background:#102c59;color:white;
+ border-radius:18px;padding:8px;font-size:11px;
+}
+#niko-bubble{
+ display:none;max-width:230px;background:#102c59;
+ border:1px solid #459cff;border-radius:16px;padding:12px;
+ margin-bottom:10px;font-size:13px;line-height:1.5;
+ box-shadow:0 4px 20px #0008;
+}
+#niko-bubble.open{display:block}
+
+/* NIKO_ROBOT_3D_V1 */
+#niko-core.robot{
+ width:90px!important;
+ height:100px!important;
+ border-radius:38% 38% 32% 32%!important;
+ background:linear-gradient(145deg,#d9f5ff 0%,#55baff 25%,#1262c9 65%,#062b78 100%)!important;
+ border:3px solid #b8eaff;
+ box-shadow:inset 7px 7px 13px #ffffff99,
+ inset -10px -12px 18px #001c60,
+ 0 12px 22px #006eff99!important;
+ transform:perspective(300px) rotateY(-8deg);
+}
+#niko-core.robot::before{
+ content:"";
+ position:absolute;
+ width:13px;height:22px;
+ top:-20px;left:37px;
+ border-radius:10px 10px 2px 2px;
+ background:linear-gradient(90deg,#1262c9,#d8f5ff,#1262c9);
+ box-shadow:0 -7px 0 -2px #bcecff;
+}
+#niko-core.robot::after{
+ content:"";
+ position:absolute;
+ width:12px;height:30px;
+ right:-11px;top:32px;
+ border-radius:0 9px 9px 0;
+ background:linear-gradient(90deg,#1262c9,#9bdfff);
+}
+#niko-core.robot .niko-eye{
+ width:13px;height:18px;
+ background:radial-gradient(circle at 35% 25%,white,#9ceaff 35%,#0872ff 75%);
+ box-shadow:0 0 9px #a8edff;
+}
+#niko-core.robot #niko-mouth{
+ width:24px;height:7px;
+ background:linear-gradient(#06245b,#001333);
+ border:1px solid #9cdeff;
+}
+#niko-core.robot.speaking #niko-mouth{
+ animation:nikoTalk .18s infinite alternate;
+}
+</style>
+<niko-assistant></niko-assistant>
+<script>
+(()=>{
+ const host=document.querySelector('niko-assistant');
+ const root=host.attachShadow({mode:'open'});
+ root.innerHTML=`
+ <div id="niko-float">
+  <div id="niko-bubble">Halo! Aku NIKO. Aku siap membantu.</div>
+  <div id="niko-core" class="ball" title="NIKO">
+   <div id="niko-face"><i class="niko-eye"></i><i class="niko-eye"></i></div>
+   <div id="niko-mouth"></div>
+  </div>
+  <div id="niko-tools">
+   <button id="niko-mode">Bentuk Robot</button>
+   <button id="niko-say">Sapa NIKO</button>
+  </div>
+ </div>`;
+ const core=root.querySelector('#niko-core');
+ const mode=root.querySelector('#niko-mode');
+ const bubble=root.querySelector('#niko-bubble');
+ const say=root.querySelector('#niko-say');
+ let robot=false;
+ mode.onclick=()=>{
+  robot=!robot;
+  core.className=robot?'robot':'ball';
+  mode.textContent=robot?'Bentuk Bola':'Bentuk Robot';
+ };
+ say.onclick=()=>{
+  bubble.textContent='Halo! Aku NIKO. Aku siap membantu kamu.';
+  bubble.classList.add('open');
+  core.classList.add('speaking');
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(bubble.textContent);
+    u.lang='id-ID';
+    u.onend=()=>core.classList.remove('speaking');
+    speechSynthesis.speak(u);
+  } else {
+    setTimeout(()=>core.classList.remove('speaking'),1800);
+  }
+ };
+ core.onclick=()=>bubble.classList.toggle('open');
+})();
+</script>
+
 </body>
 </html>

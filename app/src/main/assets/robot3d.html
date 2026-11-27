@@ -173,4 +173,21 @@ function frame(){
 }
 frame();
 addEventListener('resize',function(){W=innerWidth;H=innerHeight;renderer.setSize(W,H,false);camera.aspect=W/H;camera.updateProjectionMatrix();});
-</script></body></html>
+</script><style>
+#gelembung{position:fixed;left:50%;top:8%;transform:translateX(-50%) scale(.8);max-width:80%;padding:10px 16px;border-radius:18px;background:#fff;color:#111;font:600 14px sans-serif;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;z-index:99}
+#gelembung.tampil{opacity:1;transform:translateX(-50%) scale(1)}
+#gelembung:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fff}
+</style>
+<div id="gelembung"></div>
+<script>
+(function(){
+var el=document.getElementById("gelembung");
+window.robotBicara=function(teks,ms){
+el.textContent=teks;el.classList.add("tampil");
+clearTimeout(window._gelT);
+window._gelT=setTimeout(function(){el.classList.remove("tampil")},ms||5000);
+};
+setInterval(function(){robotBicara("Ingat: robot 3D ini dikendalikan AI",5000)},20000);
+})();
+</script>
+</body></html>

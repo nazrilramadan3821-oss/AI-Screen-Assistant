@@ -145,7 +145,7 @@ public class OverlayController {
       panel = box;
       wm.addView(panel, lp);
     }
-    resultView.setText(text);
+    resultView.setText(text == null ? "" : text.replace("$", "").replace("\\times", "\u00d7").replace("\\div", "\u00f7"));
   }
 
   public void hidePanel() {
