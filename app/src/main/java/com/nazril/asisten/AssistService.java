@@ -132,9 +132,6 @@ public class AssistService extends Service implements OverlayController.Listener
 
     // Beri jeda agar bubble/panel benar-benar hilang dari frame sebelum diambil
     ui.postDelayed(() -> want = true, 250);
-Runnable paksa = () -> { if (want && vd != null && ir != null) { try { vd.setSurface(null); vd.setSurface(ir.getSurface()); } catch (Exception e) { } } };
-ui.postDelayed(paksa, 900);
-ui.postDelayed(paksa, 1800);
 
     // Batas waktu jika tidak ada frame yang masuk
     ui.postDelayed(() -> {
