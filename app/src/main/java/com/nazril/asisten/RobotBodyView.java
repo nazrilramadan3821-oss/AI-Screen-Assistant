@@ -96,12 +96,13 @@ switch (nama.toLowerCase()) {
 case "santai": n = 0; break; case "main": n = 1; break; case "lambai": n = 2; break;
 case "menari": n = 3; break; case "celingak": n = 4; break; case "regang": n = 5; break;
 case "putar": n = 6; break; case "tidur": n = 7; break; case "lompat": n = 8; break;
+case "lari": n = 11; break; case "bola": n = 12; break; case "kupu": n = 13; break;
 case "guling": n = td ? 6 : 9; break;
 case "goyang": n = td ? 9 : 3; break;
 case "angguk": n = td ? 10 : 2; break;
 }
 if (n >= 0) {
-long dur = n == 6 ? 2500 : n == 7 ? 10000 : n == 8 ? 4000 : (n == 9 && !td) ? 3000 : 6000;
+long dur = n >= 11 ? 8000 : n == 6 ? 2500 : n == 7 ? 10000 : n == 8 ? 4000 : (n == 9 && !td) ? 3000 : 6000;
 lastTouch = 0; act = n; actStart = now; actEnd = now + dur;
 if (td && web != null) web.evaluateJavascript("try{setAksi(" + n + "," + dur + ")}catch(e){}", null);
 }
@@ -137,7 +138,7 @@ public void poke() {
 
     private void pickNext(long now) {
         int n;
-        do { n = rnd.nextInt(10); } while (n == act);
+        do { n = rnd.nextInt(14); } while (n == act || n == 10);
         act = n;
         actStart = now;
         long dur = 6000 + rnd.nextInt(8000);
@@ -196,6 +197,17 @@ kMuat(); if (kShape == 7) shape = SHAPE3D; else if (shape == SHAPE3D) shape = BA
                 float k = Math.min(at / 2.5f, 1f);
                 rot = 360f * k;
                 dy = -(float) Math.sin(Math.PI * k) * s * 0.08f; break; }
+            case 11: // lari
+                dx = (float) Math.sin(at * 3) * s * 0.11f;
+                dy = -Math.abs((float) Math.sin(at * 12)) * s * 0.06f;
+                rot = (float) Math.cos(at * 3) * 14f; break;
+            case 12: // main bola
+                dx = -s * 0.07f + (float) Math.sin(at * 5) * s * 0.03f;
+                rot = (float) Math.sin(at * 5) * 8f; break;
+            case 13: // tangkap kupu-kupu
+                dx = (float) Math.sin(at * 1.7f) * s * 0.08f;
+                dy = -Math.max(0f, (float) Math.sin(at * 3.4f)) * s * 0.1f;
+                rot = (float) Math.sin(at * 1.7f) * 10f; break;
             default:
                 rot = (float) Math.sin(t * 1.5f) * 2f;
         }
@@ -237,6 +249,27 @@ kMuat(); if (kShape == 7) shape = SHAPE3D; else if (shape == SHAPE3D) shape = BA
         }
         c.restore();
 
+        float at2 = (now - actStart) / 1000f;
+        p.setStyle(Paint.Style.FILL);
+        if (act == 11) {
+            p.setColor(0xCCFFFFFF);
+            float arah = Math.cos(at2 * 3) > 0 ? 0.06f : 0.80f;
+            for (int i = 0; i < 3; i++)
+                c.drawRect(w * arah, h * (0.38f + i * 0.14f), w * (arah + 0.14f), h * (0.40f + i * 0.14f), p);
+        } else if (act == 12) {
+            float bx = w * 0.82f, by = h * 0.84f - Math.abs((float) Math.sin(at2 * 5)) * h * 0.4f;
+            p.setColor(0xFFFFFFFF); c.drawCircle(bx, by, s * 0.12f, p);
+            p.setColor(0xFF111111); c.drawCircle(bx, by, s * 0.045f, p);
+        } else if (act == 13) {
+            float kx = w * 0.5f + (float) Math.sin(at2 * 1.7f) * w * 0.34f;
+            float ky = h * 0.2f + (float) Math.sin(at2 * 4.1f) * h * 0.08f;
+            float kw = s * (0.05f + 0.07f * Math.abs((float) Math.sin(at2 * 14)));
+            p.setColor(0xFFFF8A1F);
+            c.drawOval(new RectF(kx - kw * 2, ky - s * 0.08f, kx, ky + s * 0.06f), p);
+            c.drawOval(new RectF(kx, ky - s * 0.08f, kx + kw * 2, ky + s * 0.06f), p);
+            p.setColor(0xFF222222);
+            c.drawRect(kx - s * 0.012f, ky - s * 0.08f, kx + s * 0.012f, ky + s * 0.08f, p);
+        }
         if (lie > 0.8f) {
             p.setStyle(Paint.Style.FILL);
             p.setColor(0xFFFFFFFF);

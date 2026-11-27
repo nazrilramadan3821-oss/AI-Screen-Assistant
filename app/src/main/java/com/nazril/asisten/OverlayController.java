@@ -93,6 +93,8 @@ public class OverlayController {
         } else if (a == MotionEvent.ACTION_UP) {
           ui.removeCallbacks(stopper);
           if (!moved) listener.onCaptureRequested();
+          else if (android.os.SystemClock.uptimeMillis() - terakhirBicara > 8000)
+            RobotBodyView.aksiGlobal("lompat", kataGeser[acak.nextInt(kataGeser.length)]);
         } else if (a == MotionEvent.ACTION_CANCEL) {
           ui.removeCallbacks(stopper);
         }
@@ -171,7 +173,7 @@ int i; do { i = acak.nextInt(kataSantai.length); } while (i == kataTerakhir);
 kataTerakhir = i;
 String n = ctx.getSharedPreferences("p", 0).getString("nama", "").trim();
 String k = acak.nextInt(3) == 0 ? sapaanWaktu() : kataSantai[i];
-komentar(k.replace("{nama}", n.isEmpty() ? "Nino" : n));
+RobotBodyView.aksiGlobal(aksiUntuk(k), k.replace("{nama}", n.isEmpty() ? "Nino" : n));
 }
 int j = jedaSapaan();
 ui.postDelayed(this, j == 0 ? 15000L : j * 1000L + acak.nextInt(10000));
@@ -191,6 +193,38 @@ return "Sudah malam, belum tidur?";
 private int ukuranBola() {
 String u = ctx.getSharedPreferences("p", 0).getString("ukuran", "2");
 return dp("1".equals(u) ? 44 : "3".equals(u) ? 80 : 56);
+}
+private final String[] kataGeser = { "Eh, mau dibawa ke mana?", "Wah, pindah rumah!", "Pelan-pelan, aku pusing!", "Di sini enak juga." };
+private String aksiUntuk(String k) {
+if (k.startsWith("Selamat") || k.startsWith("Halo")) return "lambai";
+if (k.contains("bosan") || k.contains("dicuekin")) return "bola";
+if (k.contains("Semangat") || k.contains("bisa")) return "lompat";
+if (k.contains("Istirahat")) return "tidur";
+String[] a = { "kupu", "lari", "bola", "celingak", "menari" };
+return a[acak.nextInt(a.length)];
+}
+private int urutRiwayat = 0;
+public void simpanRiwayat(String teks) {
+try {
+android.content.SharedPreferences sp = ctx.getSharedPreferences("p", 0);
+org.json.JSONArray lama = new org.json.JSONArray(sp.getString("riwayat_bola", "[]"));
+org.json.JSONArray baru = new org.json.JSONArray();
+baru.put(new org.json.JSONObject().put("w", System.currentTimeMillis()).put("t", teks));
+for (int i = 0; i < lama.length() && baru.length() < 10; i++) baru.put(lama.getJSONObject(i));
+sp.edit().putString("riwayat_bola", baru.toString()).apply();
+urutRiwayat = 0;
+} catch (Exception e) { }
+}
+private void tampilRiwayat() {
+try {
+org.json.JSONArray a = new org.json.JSONArray(ctx.getSharedPreferences("p", 0).getString("riwayat_bola", "[]"));
+if (a.length() == 0) { resultView.setText("Belum ada riwayat."); return; }
+int i = urutRiwayat % a.length();
+urutRiwayat = i + 1;
+org.json.JSONObject o = a.getJSONObject(i);
+String jam = new java.text.SimpleDateFormat("dd/MM HH:mm", java.util.Locale.US).format(new java.util.Date(o.getLong("w")));
+resultView.setText("Riwayat " + (i + 1) + "/" + a.length() + " (" + jam + ")\n\n" + o.getString("t"));
+} catch (Exception e) { resultView.setText("Riwayat tidak bisa dibaca."); }
 }
 private void mulaiSantai() { ui.removeCallbacks(santai); ui.postDelayed(santai, 20000); }
 public void komentar(final String teks) {
@@ -249,7 +283,25 @@ public void showPanel(String text) {
 
       box.addView(sv, new LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
-      box.addView(close, new LinearLayout.LayoutParams(
+      final Button salin = new Button(ctx);
+      salin.setText("Salin");
+      salin.setOnClickListener(v -> {
+        try {
+          android.content.ClipboardManager cm = (android.content.ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+          cm.setPrimaryClip(android.content.ClipData.newPlainText("Jawaban", resultView.getText().toString()));
+          salin.setText("Tersalin");
+          ui.postDelayed(() -> salin.setText("Salin"), 1500);
+        } catch (Exception e) { salin.setText("Gagal"); }
+      });
+      Button riwayat = new Button(ctx);
+      riwayat.setText("Riwayat");
+      riwayat.setOnClickListener(v -> tampilRiwayat());
+
+      LinearLayout baris = new LinearLayout(ctx);
+      baris.addView(riwayat, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+      baris.addView(salin, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+      baris.addView(close, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+      box.addView(baris, new LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
       WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
@@ -274,6 +326,8 @@ public void showPanel(String text) {
   }
 
   public void destroy() {
+    tutupGelembung();
+    RobotBodyView.bicaraBola = null;
     ui.removeCallbacksAndMessages(null);
     hidePanel();
     if (bubble != null) {

@@ -162,7 +162,9 @@ return h;
 }
 private void analyze(final Bitmap bmp) {
     overlay.setBubbleVisible(true);
-    overlay.showPanel("Menganalisis layar...");
+    String nm = getSharedPreferences("p", 0).getString("nama", "").trim();
+    overlay.showPanel((nm.isEmpty() ? "Nino" : nm) + " sedang berpikir...");
+    RobotBodyView.aksiGlobal("celingak", null);
     new Thread(() -> {
       String ans;
       try {
@@ -175,7 +177,7 @@ GeminiVisionClient.konteks = halaman == 0 ? "" : "Ini lanjutan setelah layar dig
 ans = client.analyzeScreenshot(bmp);
 }
       } catch (Exception e) {
-        ans = "Gagal: " + e.getMessage();
+        ans = "Gagal: " + pesanJelas(e);
       }
       bmp.recycle();
       final String out = ans;
@@ -183,6 +185,17 @@ ans = client.analyzeScreenshot(bmp);
     }).start();
   }
 
+  private String pesanJelas(Exception e) {
+String m = String.valueOf(e.getMessage());
+String k = m.toLowerCase(java.util.Locale.US);
+if (e instanceof java.net.UnknownHostException || e instanceof java.net.ConnectException)
+return "Tidak ada koneksi internet. Periksa data atau Wi-Fi.";
+if (e instanceof java.net.SocketTimeoutException) return "Internet terlalu lambat. Coba lagi.";
+if (k.contains("api key") || k.contains("api_key")) return "API key salah atau tidak berlaku. Periksa tombol Kunci.";
+if (k.contains("quota") || k.contains("exhausted") || k.contains("429")) return "Kuota Gemini habis atau terlalu sering. Tunggu sebentar lalu coba lagi.";
+if (k.contains("overloaded") || k.contains("high demand") || k.contains("503")) return "Server Gemini sedang sibuk. Coba lagi sebentar.";
+return m;
+}
   private void geserLayar() {
 NikoAccess na = NikoAccess.inst;
 if (na == null || dead) return;
@@ -214,6 +227,7 @@ String tampil = semua.toString();
 if (tampil.isEmpty()) tampil = habis ? "Tidak ada yang berubah di layar." : s;
 else if (galat) tampil = tampil + "\n\n(" + s + ")";
 else if (lagi && halaman >= 6) tampil = tampil + "\n\n(Berhenti di halaman 6. Ketuk bola lagi untuk lanjut.)";
+if (!galat && semua.length() > 0) overlay.simpanRiwayat(tampil);
 overlay.showPanel(tampil);
   }
 

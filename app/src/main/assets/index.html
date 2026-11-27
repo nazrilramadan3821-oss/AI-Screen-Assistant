@@ -73,6 +73,7 @@ header button,.top button,#skinBtn,button[id*="kin"]{
 
 #txt{order:-1;flex:1 1 100%;min-width:0;min-height:44px;box-sizing:border-box}
 </style>
+<style>header{flex-wrap:wrap!important;row-gap:8px}header>span{display:none!important}header button{white-space:nowrap}</style>
 </head>
 <body>
 <header><b><svg class="logo" viewBox="0 0 128 128" width="26" height="26" style="vertical-align:middle;margin-right:8px"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="url(#lg)"/><rect x="26" y="34" width="76" height="52" rx="10" fill="none" stroke="#fff" stroke-width="7"/><path d="M64 44L69 60L85 65L69 70L64 86L59 70L43 65L59 60Z" fill="#fff"/><rect x="48" y="96" width="32" height="7" rx="3.5" fill="#fff"/></svg>AI Asisten</b><span>tanya, foto soal, pindai layar</span><button id="key">Kunci</button><button id="clear">Hapus</button></header>
@@ -396,6 +397,13 @@ document.getElementById("scr").onclick = async () => {
   Android.startScreenCapture();
   };
 
+function pesanJelas(m){ const k=String(m).toLowerCase();
+  if(k.includes("failed to fetch")||k.includes("network")) return "Tidak ada koneksi internet. Periksa data atau Wi-Fi.";
+  if(k.includes("api key not valid")||k.includes("api_key_invalid")) return "API key salah atau tidak berlaku. Periksa tombol Kunci.";
+  if(k.includes("quota")||k.includes("exhausted")) return "Kuota Gemini habis atau terlalu sering. Tunggu sebentar lalu coba lagi.";
+  if(k.includes("overloaded")||k.includes("high demand")) return "Server Gemini sedang sibuk. Coba lagi sebentar.";
+  return m; }
+
 async function kirim(){
   if (busy) return;
   const text = txt.value.trim();
@@ -434,7 +442,7 @@ async function kirim(){
     history.push({role:"assistant", text:reply});
   }catch(e){
     wait.classList.add("err");
-    wait.textContent = "Gagal: " + e.message;
+    wait.textContent = "Gagal: " + pesanJelas(e.message);
     history.pop();
   }
   busy = false; send.disabled = false; chat.scrollTop = chat.scrollHeight;
