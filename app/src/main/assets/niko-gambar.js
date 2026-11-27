@@ -49,6 +49,8 @@
     };
     $("ngSimpan").onclick = function () {
       if (!data) return;
+      var h = window.NikoSimpan ? NikoSimpan.simpanGambar(data) : null;
+      if (h !== null) { $("ngInfo").textContent = (h === "OK") ? "Tersimpan di galeri (folder Pictures/AI Asisten)." : h; return; }
       var a = document.createElement("a");
       a.href = data; a.download = "niko-gambar-" + Date.now() + ".jpg";
       document.body.appendChild(a); a.click(); a.remove();

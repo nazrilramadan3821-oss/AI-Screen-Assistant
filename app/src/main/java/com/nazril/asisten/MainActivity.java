@@ -79,6 +79,28 @@ public class MainActivity extends Activity {
                                                                                                                                                                                                                                                                                                                                                                                                             requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, 77);
                                                                                                                                                                                                                                                                                                                                                                                                             }                                                                    
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  w.addJavascriptInterface(new NikoBridge(), "NikoNative");
+        w.addJavascriptInterface(new Object() {
+            @android.webkit.JavascriptInterface
+            public String simpanGambar(String data) {
+                try {
+                    if (android.os.Build.VERSION.SDK_INT < 29) return "Gagal: butuh Android 10 ke atas";
+                    int k = data.indexOf(",");
+                    byte[] b = android.util.Base64.decode(k >= 0 ? data.substring(k + 1) : data, android.util.Base64.DEFAULT);
+                    android.content.ContentValues cv = new android.content.ContentValues();
+                    cv.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "niko-gambar-" + System.currentTimeMillis() + ".jpg");
+                    cv.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    cv.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/AI Asisten");
+                    android.net.Uri u = MainActivity.this.getContentResolver().insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+                    if (u == null) return "Gagal: tidak bisa membuat file";
+                    java.io.OutputStream o = MainActivity.this.getContentResolver().openOutputStream(u);
+                    o.write(b);
+                    o.close();
+                    return "OK";
+                } catch (Exception e) {
+                    return "Gagal: " + e.getMessage();
+                }
+            }
+        }, "NikoSimpan");
         w.setDownloadListener(new android.webkit.DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
