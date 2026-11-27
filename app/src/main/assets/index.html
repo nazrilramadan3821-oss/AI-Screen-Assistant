@@ -117,7 +117,7 @@ header button,.top button,#skinBtn,button[id*="kin"]{
 const MODEL = "gemini-3.6-flash";
 function getKey(){ try{return localStorage.getItem("gkey")||""}catch(e){return ""} }
 function getNama(){ try{return (localStorage.getItem("nama_ai")||"").trim()||"Nino"}catch(e){return "Nino"} }
-function askKey(){ const k = prompt("Tempel Gemini API Key (diawali AIza). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{Android.saveKey(k.trim()); Android.saveKey(k.trim()); localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
+function askKey(){ const k = prompt("Tempel token NIKO. Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{Android.saveKey(k.trim()); Android.saveKey(k.trim()); localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
 
 const chat = document.getElementById("chat"), txt = document.getElementById("txt"),
   send = document.getElementById("send"), file = document.getElementById("file"),

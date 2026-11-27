@@ -2,6 +2,7 @@ import { boleh } from "./auth.js";
 import { solve } from "./solve.js";
 export default {
   async fetch(req, env) {
+    if (new URL(req.url).pathname === "/api/cek") return new Response(null, { status: boleh(req, env) ? 204 : 401 });
     if (new URL(req.url).pathname === "/api/solve") return solve(req, env);
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "https://appassets.androidplatform.net", "Access-Control-Allow-Methods": "POST", "Access-Control-Allow-Headers": "Content-Type, x-app-token" } });
     if (req.method !== "POST") return new Response("NIKO Gemini OK");

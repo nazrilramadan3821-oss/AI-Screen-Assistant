@@ -4,3 +4,8 @@ compatibility_date = "2025-01-01"
 
 [ai]
 binding = "AI"
+
+
+[[services]]
+binding = "AUTH"
+service = "niko-gemini"

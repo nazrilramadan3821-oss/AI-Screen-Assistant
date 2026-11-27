@@ -36,7 +36,7 @@
       var kendali = new AbortController();
       var waktu = setTimeout(function () { kendali.abort(); }, 90000);
       try {
-        var r = await fetch(URL_GAMBAR, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: teks }), signal: kendali.signal });
+        var r = await fetch(URL_GAMBAR, { method: "POST", headers: { "Content-Type": "application/json", "x-app-token": String(localStorage.getItem("gkey") || "").replace(/\s+/g, "") }, body: JSON.stringify({ prompt: teks }), signal: kendali.signal });
         var d = await r.json();
         if (!r.ok || d.error) throw new Error(d.error || "Gagal membuat gambar");
         data = "data:image/jpeg;base64," + d.image;
