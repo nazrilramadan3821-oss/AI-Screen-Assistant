@@ -30,6 +30,7 @@ public class AssistService extends Service implements OverlayController.Listener
   private OverlayController overlay;
   private GeminiVisionClient client;
   private boolean want = false, busy = false;
+private int halaman = 0, sigLalu = 0; private boolean lanjut = false; private final StringBuilder semua = new StringBuilder();
   private volatile boolean dead = false;
   private int sw, sh;
 
@@ -126,12 +127,17 @@ public class AssistService extends Service implements OverlayController.Listener
   @Override
   public void onCaptureRequested() {
     if (busy || dead) return;
-    busy = true;
+    busy = true; if (!lanjut) { halaman = 0; semua.setLength(0); sigLalu = 0; } lanjut = false;
     overlay.hidePanel();
     overlay.setBubbleVisible(false);
 
     // Beri jeda agar bubble/panel benar-benar hilang dari frame sebelum diambil
-    ui.postDelayed(() -> want = true, 250);
+    ui.postDelayed(() -> {
+NikoAccess na = NikoAccess.inst;
+if (na != null && android.os.Build.VERSION.SDK_INT >= 30) {
+na.ambilLayar(b -> ui.post(() -> { if (dead) { b.recycle(); } else { analyze(b); } }), () -> ui.post(() -> want = true));
+} else { want = true; }
+}, 250);
 
     // Batas waktu jika tidak ada frame yang masuk
     ui.postDelayed(() -> {
@@ -147,13 +153,27 @@ public class AssistService extends Service implements OverlayController.Listener
     stopSelf();
   }
 
-  private void analyze(final Bitmap bmp) {
+  private int sigBmp(Bitmap b) {
+Bitmap t = Bitmap.createScaledBitmap(b, 16, 16, true);
+int h = 17;
+for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) { int c = t.getPixel(x, y); h = h * 31 + ((c >> 20) & 15) * 256 + ((c >> 12) & 15) * 16 + ((c >> 4) & 15); }
+if (t != b) t.recycle();
+return h;
+}
+private void analyze(final Bitmap bmp) {
     overlay.setBubbleVisible(true);
     overlay.showPanel("Menganalisis layar...");
     new Thread(() -> {
       String ans;
       try {
-        ans = client.analyzeScreenshot(bmp);
+        int sg = sigBmp(bmp);
+if (halaman > 0 && sg == sigLalu) { ans = "##END##"; }
+else {
+sigLalu = sg;
+String kt = semua.length() > 400 ? semua.substring(semua.length() - 400) : semua.toString();
+GeminiVisionClient.konteks = halaman == 0 ? "" : "Ini lanjutan setelah layar digeser ke bawah. Soal yang sudah dijawab sebelumnya (jangan dijawab ulang): " + kt + " Jawab hanya soal baru yang belum ada di situ. ";
+ans = client.analyzeScreenshot(bmp);
+}
       } catch (Exception e) {
         ans = "Gagal: " + e.getMessage();
       }
@@ -163,15 +183,38 @@ public class AssistService extends Service implements OverlayController.Listener
     }).start();
   }
 
-  private void done(String s) {
+  private void geserLayar() {
+NikoAccess na = NikoAccess.inst;
+if (na == null || dead) return;
+android.util.DisplayMetrics d2 = getResources().getDisplayMetrics();
+float x = d2.widthPixels * 0.5f;
+na.swipe(x, d2.heightPixels * 0.78f, x, d2.heightPixels * 0.28f, 450);
+ui.postDelayed(() -> { if (dead) return; lanjut = true; onCaptureRequested(); }, 1500);
+}
+private void done(String s) {
 String aksi = null, komen = null;
 java.util.regex.Matcher mt = java.util.regex.Pattern.compile("^\\s*\\[(\\w+)(?:\\|([^\\]]*))?\\]\\s*").matcher(s);
 if (mt.find()) { aksi = mt.group(1); komen = mt.group(2); s = s.substring(mt.end()); }
     if (dead) return;
     busy = false;
     overlay.setBubbleVisible(true);
-    overlay.showPanel(s);
+    boolean habis = s.startsWith("##END##");
+boolean galat = !habis && (s.startsWith("Gagal") || s.startsWith("Tidak ada gambar"));
+boolean lagi = false;
+java.util.regex.Matcher ml = java.util.regex.Pattern.compile("\\s*\\[LANJUT\\]\\s*$", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(s);
+if (ml.find()) { lagi = true; s = s.substring(0, ml.start()); }
+if (!galat && !habis) { halaman++; if (semua.length() > 0) semua.append("\n\n"); semua.append(s.trim()); }
 RobotBodyView.aksiGlobal(aksi, komen);
+if (lagi && !galat && !habis && halaman < 6 && NikoAccess.inst != null) {
+overlay.hidePanel();
+ui.postDelayed(() -> geserLayar(), 300);
+return;
+}
+String tampil = semua.toString();
+if (tampil.isEmpty()) tampil = habis ? "Tidak ada yang berubah di layar." : s;
+else if (galat) tampil = tampil + "\n\n(" + s + ")";
+else if (lagi && halaman >= 6) tampil = tampil + "\n\n(Berhenti di halaman 6. Ketuk bola lagi untuk lanjut.)";
+overlay.showPanel(tampil);
   }
 
   @Override

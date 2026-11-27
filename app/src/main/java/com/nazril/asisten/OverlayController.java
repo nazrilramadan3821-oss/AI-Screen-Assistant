@@ -110,7 +110,28 @@ public class OverlayController {
     }
   }
 
-  public void showPanel(String text) {
+  private CharSequence rapi(CharSequence t) {
+if (t == null) return "";
+try {
+String[] baris = t.toString().split("\n", -1);
+android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder();
+java.util.regex.Pattern pn = java.util.regex.Pattern.compile("^\\s*(\\d{1,3}\\s*[\\.\\)]|Jawaban\\b).*", java.util.regex.Pattern.CASE_INSENSITIVE);
+for (int i = 0; i < baris.length; i++) {
+String b = baris[i];
+boolean judul = pn.matcher(b).matches();
+if (judul && sb.length() > 0 && !sb.toString().endsWith("\n\n")) sb.append("\n");
+int a = sb.length();
+sb.append(b);
+if (judul) {
+sb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), a, sb.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+sb.setSpan(new android.text.style.ForegroundColorSpan(0xFF93C5FD), a, sb.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+}
+if (i < baris.length - 1) sb.append("\n");
+}
+return sb;
+} catch (Exception e) { return t; }
+}
+public void showPanel(String text) {
     if (panel == null) {
       LinearLayout box = new LinearLayout(ctx);
       box.setOrientation(LinearLayout.VERTICAL);
@@ -121,9 +142,9 @@ public class OverlayController {
       box.setBackground(g);
       box.setPadding(dp(14), dp(10), dp(14), dp(10));
 
-      resultView = new TextView(ctx);
+      resultView = new TextView(ctx) { @Override public void setText(CharSequence t, BufferType bt) { super.setText(rapi(t), BufferType.SPANNABLE); } };
       resultView.setTextColor(Color.WHITE);
-      resultView.setTextSize(15);
+      resultView.setTextSize(17); resultView.setLineSpacing(dp(4), 1f);
 
       ScrollView sv = new ScrollView(ctx);
       sv.addView(resultView);

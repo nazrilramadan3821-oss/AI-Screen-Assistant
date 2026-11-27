@@ -145,6 +145,7 @@ public void poke() {
     }
 
     @Override protected void onDraw(Canvas c) {
+kMuat(); if (kShape == 7) shape = SHAPE3D; else if (shape == SHAPE3D) shape = BALL;
         long now = System.currentTimeMillis();
         shape = getContext().getSharedPreferences("robot", Context.MODE_PRIVATE).getInt("shape", shape);
 
