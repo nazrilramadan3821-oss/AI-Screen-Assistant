@@ -106,8 +106,8 @@ lastTouch = 0; act = n; actStart = now; actEnd = now + dur;
 if (td && web != null) web.evaluateJavascript("try{setAksi(" + n + "," + dur + ")}catch(e){}", null);
 }
 }
-if (teks != null && !teks.trim().isEmpty() && !td && bicaraBola != null) bicaraBola.accept(teks);
-if (teks != null && !teks.trim().isEmpty() && td && web != null) {
+if (teks != null && !teks.trim().isEmpty() && bicaraBola != null) bicaraBola.accept(teks);
+if (teks != null && !teks.trim().isEmpty() && false) {
 long ms = 3000 + 70L * teks.length();
 web.evaluateJavascript("try{robotBicara(" + org.json.JSONObject.quote(teks) + "," + ms + ")}catch(e){}", null);
 }
