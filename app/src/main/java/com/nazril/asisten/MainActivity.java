@@ -211,6 +211,14 @@ MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE
 public void saveUkuran(String n) {
 MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit().putString("ukuran", n).apply();
 }
+@android.webkit.JavascriptInterface
+public String ambilRiwayat() {
+return getSharedPreferences("p", 0).getString("riwayat_bola", "[]");
+}
+@android.webkit.JavascriptInterface
+public void reaksi(final String aksi, final String teks) {
+runOnUiThread(() -> RobotBodyView.aksiGlobal(aksi, teks));
+}
 @JavascriptInterface
 public void saveKey(String k) {
   getSharedPreferences("p", MODE_PRIVATE).edit()

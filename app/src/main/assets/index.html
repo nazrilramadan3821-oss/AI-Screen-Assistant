@@ -830,5 +830,82 @@ m.addEventListener("click",function(e){ if(e.target.closest("button")) m.hidden=
 document.addEventListener("click",function(e){ if(!m.contains(e.target)) m.hidden=true; });
 })();
 </script>
+<style id="kuis-latihan">
+#kuis{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column;padding:16px;gap:12px;overflow:auto}
+#kuis[hidden]{display:none}
+#kuis h3{margin:0;display:flex;justify-content:space-between;align-items:center;font-size:18px}
+#kuis button{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px 14px;font:15px system-ui;text-align:left}
+#kuis button.utama{background:linear-gradient(135deg,var(--a),var(--b));border:0;text-align:center;font-weight:600}
+#kuis button.benar{background:#14532d;border-color:#22c55e;opacity:1}
+#kuis button.salah{background:#5f1d1d;border-color:#ef4444;opacity:1}
+#kuis textarea{flex:none;width:100%;min-height:80px}
+#kuis p{margin:0;white-space:pre-wrap}
+#kuis .redup{color:var(--mut);font-size:13px}
+#menuAtur #kuisBtn::before{content:"\1F4DD  "}
+</style>
+<div id="kuis" hidden></div>
+<script>
+(function(){
+var K=document.getElementById("kuis"), menu=document.getElementById("menuAtur"); if(!menu) return;
+var soal=[], no=0, skor=0, sesi=0;
+function el(tag,teks,kelas){ var e=document.createElement(tag); if(teks!=null) e.textContent=teks; if(kelas) e.className=kelas; K.appendChild(e); return e; }
+function reaksi(a,t){ try{Android.reaksi(a,t)}catch(e){} }
+function kepala(judul){ K.innerHTML=""; var h=el("h3"); var s=document.createElement("span"); s.textContent=judul;
+var x=document.createElement("button"); x.textContent="Tutup"; x.onclick=function(){ sesi++; K.hidden=true; }; h.append(s,x); }
+function layarTerakhir(){ try{ var a=JSON.parse(Android.ambilRiwayat()||"[]"); return a.length?String(a[0].t||""):""; }catch(e){ return ""; } }
+function awal(pesan){
+kepala("Kuis latihan"); K.hidden=false;
+if(pesan) el("p",pesan,"err");
+el("p","Nino membuat 5 soal baru untuk latihan.","redup");
+var bahan=layarTerakhir();
+if(bahan){ var d=el("button","Buat dari soal layar terakhir","utama"); d.onclick=function(){ buat(bahan); };
+el("p",bahan.slice(0,160)+(bahan.length>160?"...":""),"redup"); }
+else el("p","Belum ada soal dari layar. Ketuk bola di layar berisi soal, atau tulis topik di bawah.","redup");
+var t=el("textarea"); t.placeholder="Atau tulis topik, misalnya: pecahan kelas 5";
+var b=el("button","Buat dari topik","utama"); b.onclick=function(){ if(t.value.trim()) buat("Topik: "+t.value.trim()); };
+}
+async function buat(bahan){
+var ini=++sesi; kepala("Kuis latihan"); el("p","Nino sedang membuat soal...","redup"); reaksi("celingak","Aku siapkan soalnya, ya!");
+try{
+var key=getKey()||askKey(); if(!key) throw new Error("API Key belum diisi (Menu, Kunci API)");
+var perintah="Buat 5 soal latihan pilihan ganda BARU dalam bahasa Indonesia yang setingkat dan setopik dengan bahan di bawah. Ubah angka atau konteksnya, jangan menyalin soal aslinya. Pastikan hanya satu pilihan yang benar. Balas HANYA JSON array berbentuk [{\"soal\":\"...\",\"pilihan\":[\"...\",\"...\",\"...\",\"...\"],\"benar\":0,\"penjelasan\":\"...\"}] dengan benar berupa nomor pilihan 0 sampai 3. Tulis rumus dengan simbol biasa.\n\nBahan:\n"+bahan.slice(0,4000);
+var r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent",{method:"POST",
+headers:{"Content-Type":"application/json","x-goog-api-key":key},
+body:JSON.stringify({contents:[{role:"user",parts:[{text:perintah}]}],generationConfig:{responseMimeType:"application/json"}})});
+var d=await r.json(); if(!r.ok) throw new Error((d.error&&d.error.message)||"Terjadi kesalahan");
+var teks=d.candidates[0].content.parts.map(function(p){return p.text||""}).join("");
+var data; try{ data=JSON.parse(teks.replace(/^\s*```(json)?|```\s*$/g,"")); }catch(e){ throw new Error("Format soal tidak terbaca. Coba lagi."); }
+data=(Array.isArray(data)?data:[]).filter(function(q){ return q&&q.soal&&Array.isArray(q.pilihan)&&q.pilihan.length===4&&[0,1,2,3].indexOf(q.benar)>=0; });
+if(!data.length) throw new Error("Soal tidak lengkap. Coba lagi.");
+if(ini!==sesi) return;
+soal=data; no=0; skor=0; tampil();
+}catch(e){ if(ini===sesi){ awal("Gagal: "+pesanJelas(e.message)); } }
+}
+function tampil(){
+var q=soal[no]; kepala("Soal "+(no+1)+"/"+soal.length+"  \u00b7  Skor "+skor); el("p",q.soal);
+var urut=[0,1,2,3]; for(var i=3;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), x=urut[i]; urut[i]=urut[j]; urut[j]=x; }
+var tombol=urut.map(function(asli,i){
+var teks=String(q.pilihan[asli]).replace(/^\s*[A-Da-d][.)]\s+/,"");
+var b=el("button","ABCD"[i]+".  "+teks); b.onclick=function(){ jawab(asli,b); }; b.dataset.asli=asli; return b; });
+function jawab(pilih,b){
+var tepat=pilih===q.benar; if(tepat) skor++;
+tombol.forEach(function(t){ t.disabled=true; if(Number(t.dataset.asli)===q.benar) t.className="benar"; });
+if(!tepat) b.className="salah";
+K.querySelector("h3 span").textContent="Soal "+(no+1)+"/"+soal.length+"  \u00b7  Skor "+skor;
+reaksi(tepat?"lompat":"celingak", tepat?"Benar! Hebat!":"Belum tepat, ayo coba lagi!");
+el("p",(tepat?"Benar. ":"Belum tepat. ")+(q.penjelasan||""));
+var l=el("button",no+1<soal.length?"Lanjut":"Lihat hasil","utama");
+l.onclick=function(){ no++; if(no<soal.length) tampil(); else hasil(); }; l.scrollIntoView({block:"nearest"});
+}
+}
+function hasil(){
+kepala("Hasil kuis"); el("p","Skor kamu: "+skor+" dari "+soal.length);
+reaksi(skor*2>=soal.length?"menari":"lambai", skor===soal.length?"Sempurna! Keren!":skor*2>=soal.length?"Bagus, terus berlatih!":"Semangat, pasti bisa!");
+el("button","Latihan lagi","utama").onclick=function(){ awal(); };
+}
+var tb=document.createElement("button"); tb.id="kuisBtn"; tb.type="button"; tb.textContent="Kuis latihan";
+tb.onclick=function(){ awal(); }; menu.insertBefore(tb,menu.firstChild);
+})();
+</script>
 </body>
 </html>
