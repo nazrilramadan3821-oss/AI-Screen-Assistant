@@ -131,8 +131,9 @@ public static void aksiAIGlobal(String teks, org.json.JSONArray langkah) {
         }
         org.json.JSONObject o = a.optJSONObject(i);
         if (o == null) { jalankanLangkah(a, i + 1, d); return; }
-        float x = (float) Math.max(-30, Math.min(30, o.optDouble("x", 0))) * d;
-        float y = (float) Math.max(-30, Math.min(30, o.optDouble("y", 0))) * d;
+        float f = getWidth() > 0 ? Math.max(0.5f, Math.min(3f, getWidth() / (56f * d))) : 1f;
+        float x = (float) Math.max(-30, Math.min(30, o.optDouble("x", 0))) * d * f;
+        float y = (float) Math.max(-30, Math.min(30, o.optDouble("y", 0))) * d * f;
         float r = (float) Math.max(-40, Math.min(40, o.optDouble("putar", 0)));
         float sk = (float) Math.max(0.8, Math.min(1.3, o.optDouble("skala", 1)));
         long ms = Math.max(150, Math.min(800, o.optLong("ms", 300)));

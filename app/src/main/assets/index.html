@@ -910,5 +910,32 @@ tb.onclick=function(){ awal(); }; menu.insertBefore(tb,menu.firstChild);
 </script>
 <script src="niko-engine/auto-solver.js"></script>
 <script src="niko-engine/intro.js"></script>
+<script id="ukuran-slider">
+(function(){
+  function pct(){ var v=100; try{ v=parseInt(localStorage.getItem("ukuran_pct")||"100",10); }catch(e){} return isNaN(v)?100:Math.max(60,Math.min(200,v)); }
+  function buka(){
+    if(document.getElementById("ukuran-dlg")) return;
+    var w=document.createElement("div"); w.id="ukuran-dlg";
+    w.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center";
+    var k=document.createElement("div");
+    k.style.cssText="background:#111a2e;color:#e8ecff;border:1px solid #24304f;border-radius:16px;padding:20px;width:min(86vw,360px)";
+    k.innerHTML='<b>Ukuran robot</b><div id="ukuran-nilai" style="margin:10px 0;font-size:20px"></div><input id="ukuran-geser" type="range" min="60" max="200" step="5" style="width:100%"><div style="display:flex;justify-content:space-between;opacity:.7;font-size:12px"><span>Kecil</span><span>Besar</span></div><button id="ukuran-tutup" style="margin-top:14px;width:100%;padding:10px;border:0;border-radius:10px;background:#3b82f6;color:#fff;font-size:15px">Selesai</button>';
+    w.appendChild(k); document.body.appendChild(w);
+    var s=document.getElementById("ukuran-geser"), n=document.getElementById("ukuran-nilai");
+    s.value=pct(); n.textContent=s.value+"%";
+    s.oninput=function(){
+      n.textContent=s.value+"%";
+      try{ localStorage.setItem("ukuran_pct",s.value); }catch(e){}
+      try{ Android.saveUkuran(String(s.value)); }catch(e){}
+    };
+    document.getElementById("ukuran-tutup").onclick=function(){ w.remove(); };
+  }
+  var t=setInterval(function(){
+    var b=document.getElementById("ukuranbola");
+    if(b){ b.onclick=buka; clearInterval(t); }
+  },200);
+  setTimeout(function(){ clearInterval(t); },10000);
+})();
+</script>
 </body>
 </html>

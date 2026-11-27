@@ -62,6 +62,14 @@ public class OverlayController {
         lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
     lp.x = dp(8);
     lp.y = dp(200);
+ukuranLsn = new android.content.SharedPreferences.OnSharedPreferenceChangeListener() {
+public void onSharedPreferenceChanged(android.content.SharedPreferences sp, String k) {
+if (!"ukuran".equals(k)) return;
+ui.post(new Runnable() { public void run() {
+try { lp.width = ukuranBola(); lp.height = ukuranBola(); wm.updateViewLayout(t, lp); } catch (Exception e) { }
+}});
+}};
+ctx.getSharedPreferences("p", 0).registerOnSharedPreferenceChangeListener(ukuranLsn);
 
     final Runnable stopper = listener::onStopRequested;
     t.setOnTouchListener(new View.OnTouchListener() {
@@ -190,9 +198,17 @@ if (h >= 11 && h < 15) return "Selamat siang! Jangan lupa makan.";
 if (h >= 15 && h < 18) return "Selamat sore! Capek tidak?";
 return "Sudah malam, belum tidur?";
 }
+private android.content.SharedPreferences.OnSharedPreferenceChangeListener ukuranLsn;
+public float skala() {
+String u = ctx.getSharedPreferences("p", 0).getString("ukuran", "2");
+if ("1".equals(u)) return 44f / 56f;
+if ("3".equals(u)) return 80f / 56f;
+try { int v = Integer.parseInt(u.trim()); if (v >= 60 && v <= 200) return v / 100f; } catch (Exception e) { }
+return 1f;
+}
 private int ukuranBola() {
 String u = ctx.getSharedPreferences("p", 0).getString("ukuran", "2");
-return dp("1".equals(u) ? 44 : "3".equals(u) ? 80 : 56);
+return dp(Math.round(56 * skala()));
 }
 private final String[] kataGeser = { "Eh, mau dibawa ke mana?", "Wah, pindah rumah!", "Pelan-pelan, aku pusing!", "Di sini enak juga." };
 private String aksiUntuk(String k) {
