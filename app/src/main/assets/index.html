@@ -114,7 +114,7 @@ header button,.top button,#skinBtn,button[id*="kin"]{
   <input type="file" id="file" accept="image/*" hidden>
 </div>
 <script>
-const MODEL = "gemini-flash-lite-latest";
+const MODEL = "gemini-3.6-flash";
 function getKey(){ try{return localStorage.getItem("gkey")||""}catch(e){return ""} }
 function getNama(){ try{return (localStorage.getItem("nama_ai")||"").trim()||"Nino"}catch(e){return "Nino"} }
 function askKey(){ const k = prompt("Tempel Gemini API Key (diawali AIza). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{Android.saveKey(k.trim()); Android.saveKey(k.trim()); localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
