@@ -40,7 +40,35 @@ public class RobotBodyView extends FrameLayout {
     }
     public int getShape() { return shape; }
 
-    public void poke() {
+    private static RobotBodyView inst;
+@Override protected void onAttachedToWindow() { super.onAttachedToWindow(); inst = this; }
+@Override protected void onDetachedFromWindow() { super.onDetachedFromWindow(); if (inst == this) inst = null; }
+public static void aksiGlobal(String nama, String teks) { if (inst != null) inst.aksi(nama, teks); }
+public void aksi(String nama, String teks) {
+long now = System.currentTimeMillis();
+boolean td = (shape == SHAPE3D);
+if (nama != null) {
+int n = -1;
+switch (nama.toLowerCase()) {
+case "santai": n = 0; break; case "main": n = 1; break; case "lambai": n = 2; break;
+case "menari": n = 3; break; case "celingak": n = 4; break; case "regang": n = 5; break;
+case "putar": n = 6; break; case "tidur": n = 7; break; case "lompat": n = 8; break;
+case "guling": n = td ? 6 : 9; break;
+case "goyang": n = td ? 9 : 3; break;
+case "angguk": n = td ? 10 : 2; break;
+}
+if (n >= 0) {
+long dur = n == 6 ? 2500 : n == 7 ? 10000 : n == 8 ? 4000 : (n == 9 && !td) ? 3000 : 6000;
+lastTouch = 0; act = n; actStart = now; actEnd = now + dur;
+if (td && web != null) web.evaluateJavascript("try{setAksi(" + n + "," + dur + ")}catch(e){}", null);
+}
+}
+if (teks != null && !teks.trim().isEmpty() && td && web != null) {
+long ms = 3000 + 70L * teks.length();
+web.evaluateJavascript("try{robotBicara(" + org.json.JSONObject.quote(teks) + "," + ms + ")}catch(e){}", null);
+}
+}
+public void poke() {
         lastTouch = System.currentTimeMillis();
         if (web != null && shape == SHAPE3D) web.evaluateJavascript("poke()", null);
     }

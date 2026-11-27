@@ -133,7 +133,7 @@ var legs={};
 
 var last=Date.now(),act=0,actStart=0,actEnd=0,lie=0,blinkUntil=0,nextBlink=3,lastFrame=0;
 var cur={r:0,l:0,h:0,s:0};
-function poke(){last=Date.now();act=0;actEnd=0;}
+function poke(){last=Date.now();act=0;actEnd=0;}function setAksi(n,d){var t0=Date.now();last=0;act=n;actStart=t0;actEnd=t0+d;}
 function pick(now){var n;do{n=Math.floor(Math.random()*11);}while(n==act);
  act=n;actStart=now;var d=6000+Math.random()*8000;
  if(n==7)d=20000+Math.random()*20000;if(n==6)d=2500;actEnd=now+d;}

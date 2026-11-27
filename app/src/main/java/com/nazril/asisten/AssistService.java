@@ -164,10 +164,14 @@ public class AssistService extends Service implements OverlayController.Listener
   }
 
   private void done(String s) {
+String aksi = null, komen = null;
+java.util.regex.Matcher mt = java.util.regex.Pattern.compile("^\\s*\\[(\\w+)(?:\\|([^\\]]*))?\\]\\s*").matcher(s);
+if (mt.find()) { aksi = mt.group(1); komen = mt.group(2); s = s.substring(mt.end()); }
     if (dead) return;
     busy = false;
     overlay.setBubbleVisible(true);
     overlay.showPanel(s);
+RobotBodyView.aksiGlobal(aksi, komen);
   }
 
   @Override
