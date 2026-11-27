@@ -26,7 +26,7 @@ public class OverlayController {
   private final int screenHeight;
   private final Listener listener;
   private final Handler ui = new Handler(Looper.getMainLooper());
-  private View bubble, panel;
+  private View bubble; private View panel;
   private TextView resultView;
 
   public OverlayController(Context ctx, WindowManager wm, int screenHeight, Listener listener) {
@@ -102,6 +102,7 @@ public class OverlayController {
 
     bubble = t;
     wm.addView(bubble, lp);
+RobotBodyView.bicaraBola = new java.util.function.Consumer<String>() { @Override public void accept(String x) { OverlayController.this.komentar(x); } };
   }
 
   public void setBubbleVisible(boolean visible) {
@@ -130,6 +131,41 @@ if (i < baris.length - 1) sb.append("\n");
 }
 return sb;
 } catch (Exception e) { return t; }
+}
+private android.widget.TextView gelembung; private Runnable gelembungTutup;
+private void tutupGelembung() {
+if (gelembungTutup != null) ui.removeCallbacks(gelembungTutup);
+if (gelembung != null) { try { wm.removeView(gelembung); } catch (Exception e) { } gelembung = null; }
+}
+public void komentar(final String teks) {
+ui.post(new Runnable() { @Override public void run() {
+try {
+tutupGelembung();
+if (teks == null || teks.trim().isEmpty() || bubble == null) return;
+android.widget.TextView tv = new android.widget.TextView(ctx);
+tv.setText(teks.trim()); tv.setTextColor(0xFF111111); tv.setTextSize(14);
+tv.setTypeface(null, android.graphics.Typeface.BOLD);
+tv.setPadding(dp(12), dp(8), dp(12), dp(8)); tv.setMaxWidth(dp(220));
+GradientDrawable g2 = new GradientDrawable(); g2.setColor(0xFFFFFFFF); g2.setCornerRadius(dp(16)); g2.setStroke(dp(1), 0x33000000);
+tv.setBackground(g2);
+tv.measure(View.MeasureSpec.makeMeasureSpec(dp(240), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+int w = tv.getMeasuredWidth(), h = tv.getMeasuredHeight();
+WindowManager.LayoutParams bl = (WindowManager.LayoutParams) bubble.getLayoutParams();
+int sw = ctx.getResources().getDisplayMetrics().widthPixels;
+int x = Math.max(0, Math.min(bl.x + dp(28) - w / 2, sw - w));
+int y = bl.y - h - dp(6);
+if (y < 0) y = bl.y + bl.height + dp(6);
+WindowManager.LayoutParams gp = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+android.graphics.PixelFormat.TRANSLUCENT);
+gp.gravity = Gravity.TOP | Gravity.START; gp.x = x; gp.y = y;
+wm.addView(tv, gp);
+gelembung = tv;
+gelembungTutup = new Runnable() { @Override public void run() { tutupGelembung(); } };
+ui.postDelayed(gelembungTutup, Math.min(9000, 3000 + 70L * teks.length()));
+} catch (Exception e) { }
+} });
 }
 public void showPanel(String text) {
     if (panel == null) {

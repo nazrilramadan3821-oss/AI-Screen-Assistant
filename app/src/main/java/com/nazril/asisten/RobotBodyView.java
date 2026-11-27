@@ -83,6 +83,7 @@ p.setTextAlign(Paint.Align.LEFT);
 }
 }
 private static RobotBodyView inst;
+public static java.util.function.Consumer<String> bicaraBola;
 @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); inst = this; }
 @Override protected void onDetachedFromWindow() { super.onDetachedFromWindow(); if (inst == this) inst = null; }
 public static void aksiGlobal(String nama, String teks) { if (inst != null) inst.aksi(nama, teks); }
@@ -105,6 +106,7 @@ lastTouch = 0; act = n; actStart = now; actEnd = now + dur;
 if (td && web != null) web.evaluateJavascript("try{setAksi(" + n + "," + dur + ")}catch(e){}", null);
 }
 }
+if (teks != null && !teks.trim().isEmpty() && !td && bicaraBola != null) bicaraBola.accept(teks);
 if (teks != null && !teks.trim().isEmpty() && td && web != null) {
 long ms = 3000 + 70L * teks.length();
 web.evaluateJavascript("try{robotBicara(" + org.json.JSONObject.quote(teks) + "," + ms + ")}catch(e){}", null);
