@@ -151,14 +151,28 @@ private final Runnable santai = new Runnable() { @Override public void run() {
 if (bubble == null) return;
 boolean panelBuka = panel != null && panel.isAttachedToWindow() && panel.getVisibility() == View.VISIBLE;
 android.os.PowerManager pm = (android.os.PowerManager) ctx.getSystemService(android.content.Context.POWER_SERVICE);
-if (bubble.getVisibility() == View.VISIBLE && !panelBuka && pm.isInteractive() && android.os.SystemClock.uptimeMillis() - terakhirBicara > 25000) {
+if (jedaSapaan() > 0 && bubble.getVisibility() == View.VISIBLE && !panelBuka && pm.isInteractive() && android.os.SystemClock.uptimeMillis() - terakhirBicara > 25000) {
 int i; do { i = acak.nextInt(kataSantai.length); } while (i == kataTerakhir);
 kataTerakhir = i;
 String n = ctx.getSharedPreferences("p", 0).getString("nama", "").trim();
-komentar(kataSantai[i].replace("{nama}", n.isEmpty() ? "Nino" : n));
+String k = acak.nextInt(3) == 0 ? sapaanWaktu() : kataSantai[i];
+komentar(k.replace("{nama}", n.isEmpty() ? "Nino" : n));
 }
-ui.postDelayed(this, 30000 + acak.nextInt(30000));
+int j = jedaSapaan();
+ui.postDelayed(this, j == 0 ? 15000L : j * 1000L + acak.nextInt(10000));
 } };
+private int jedaSapaan() {
+int j = 45;
+try { j = Integer.parseInt(ctx.getSharedPreferences("p", 0).getString("jeda", "45")); } catch (Exception e) { }
+return j <= 0 ? 0 : Math.max(30, Math.min(j, 3600));
+}
+private String sapaanWaktu() {
+int h = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+if (h >= 4 && h < 11) return "Selamat pagi! Sudah sarapan?";
+if (h >= 11 && h < 15) return "Selamat siang! Jangan lupa makan.";
+if (h >= 15 && h < 18) return "Selamat sore! Capek tidak?";
+return "Sudah malam, belum tidur?";
+}
 private void mulaiSantai() { ui.removeCallbacks(santai); ui.postDelayed(santai, 20000); }
 public void komentar(final String teks) {
 terakhirBicara = android.os.SystemClock.uptimeMillis();

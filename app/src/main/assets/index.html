@@ -444,6 +444,10 @@ send.onclick = kirim;
 txt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !/Mobi|Android/i.test(navigator.userAgent)){ e.preventDefault(); kirim(); } });
 txt.addEventListener("input", () => { txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight,120) + "px"; });
 document.getElementById("key").onclick = () => askKey();
+{ const k=document.getElementById("key"), b=k.cloneNode(false); b.id="sapaan"; b.textContent="Sapaan"; k.after(b);
+b.onclick=()=>{ let l="45"; try{l=localStorage.getItem("jeda_sapa")||"45"}catch(e){}
+const n=prompt("Jeda sapaan dalam detik (minimal 30, isi 0 untuk mematikan):",l); if(n===null) return; const v=String(Math.max(0,parseInt(n,10)||0));
+try{localStorage.setItem("jeda_sapa",v)}catch(e){} try{Android.saveJeda(v)}catch(e){} }; }
 { const k=document.getElementById("key"), b=k.cloneNode(false); b.id="namaai"; b.textContent="Nama AI"; k.after(b);
 b.onclick=()=>{ const n=prompt("Nama AI (kosongkan untuk Nino):",getNama()); if(n===null) return; const v=n.trim().slice(0,30);
 try{localStorage.setItem("nama_ai",v)}catch(e){} try{Android.saveName(v)}catch(e){} }; }
