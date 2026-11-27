@@ -81,7 +81,12 @@ public class MainActivity extends Activity {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  w.addJavascriptInterface(new NikoBridge(), "NikoNative");
         w.addJavascriptInterface(new Object() {
             @android.webkit.JavascriptInterface
-            public String simpanGambar(String data) {
+            public void kostum(int sh, int col, String isi) {
+MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit()
+.putInt("k_shape", sh).putInt("k_color", col == 0 ? 0 : (0xFF000000 | col)).putString("k_isi", isi == null ? "" : isi).apply();
+}
+@android.webkit.JavascriptInterface
+public String simpanGambar(String data) {
                 try {
                     if (android.os.Build.VERSION.SDK_INT < 29) return "Gagal: butuh Android 10 ke atas";
                     int k = data.indexOf(",");

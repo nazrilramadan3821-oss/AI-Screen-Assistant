@@ -720,5 +720,56 @@ document.body.appendChild(d);
 })();
 </script>
 <script src="niko-gambar.js"></script>
+
+<script>
+(function(){
+var BR=window.NikoSimpan;
+var SH=['Bulat','Kotak bulat','Kotak','Telur','Segi enam','Berlian','Bintang'];
+var CL=['#3b82f6','#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#8b5cf6','#ec4899','#64748b','#111827'];
+var EM=['','AI','🤖','👾','👽','🐱','🦊','🐼','👻','🐲','🚀','🧠','🔮','⭐','😀'];
+var st={shape:0,color:'',isi:''};
+try{st=JSON.parse(localStorage.getItem('kostumAI')||'')||st}catch(e){}
+var ov=null,pn=null;
+function save(){
+try{localStorage.setItem('kostumAI',JSON.stringify(st))}catch(e){}
+try{BR.kostum(st.shape,st.color?parseInt(st.color.slice(1),16):0,st.isi||'')}catch(e){}
+}
+function btn(t,on,sel,extra){
+var b=document.createElement('button');b.type='button';b.textContent=t;
+b.style.cssText='margin:3px;padding:8px 12px;border-radius:10px;border:2px solid '+(sel?'#3b82f6':'#27314d')+';background:#171f36;color:#e6eaf7;font-size:14px;'+(extra||'');
+b.onclick=on;return b;
+}
+function row(t){var d=document.createElement('div');d.style.cssText='margin:12px 0 4px;color:#8b95b3;font-size:13px';d.textContent=t;return d;}
+function render(){
+pn.innerHTML='';
+var h=document.createElement('div');h.textContent='Kostum bola AI';h.style.cssText='font-size:17px;font-weight:600;color:#e6eaf7';pn.appendChild(h);
+pn.appendChild(row('Bentuk'));
+SH.forEach(function(n,i){pn.appendChild(btn(n,function(){st.shape=i;save();render()},st.shape===i))});
+pn.appendChild(row('Warna'));
+pn.appendChild(btn('Asli',function(){st.color='';save();render()},!st.color));
+CL.forEach(function(c){pn.appendChild(btn('',function(){st.color=c;save();render()},st.color===c,'width:42px;height:42px;border-radius:50%;background:'+c+';'))});
+pn.appendChild(row('Isi bola (emoji atau teks)'));
+EM.forEach(function(e){pn.appendChild(btn(e||'Kosong',function(){st.isi=e;save();render()},st.isi===e))});
+var inp=document.createElement('input');inp.type='text';inp.maxLength=6;inp.placeholder='Teks sendiri';
+inp.value=EM.indexOf(st.isi)>=0?'':st.isi;
+inp.style.cssText='display:block;margin:8px 3px;padding:8px 12px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7;font-size:14px;width:60%';
+inp.oninput=function(){st.isi=inp.value;save()};
+pn.appendChild(inp);
+pn.appendChild(btn('Tutup',function(){ov.remove();ov=null},false,'display:block;margin:14px auto 0;'));
+}
+function buka(){
+if(ov){ov.remove();ov=null}
+ov=document.createElement('div');
+ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483646;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center';
+pn=document.createElement('div');
+pn.style.cssText='width:92vw;max-width:560px;max-height:80vh;overflow:auto;padding:14px;border-radius:16px;background:#0b1020;border:1px solid #27314d';
+ov.appendChild(pn);document.body.appendChild(ov);render();
+}
+var b=document.createElement('button');b.id='kostum-btn';b.type='button';b.textContent='Kostum';b.onclick=buka;
+var hp=[].slice.call(document.querySelectorAll('button')).filter(function(x){return x.textContent.trim()==='Hapus'})[0];
+if(hp&&hp.parentNode){b.className=hp.className;hp.parentNode.insertBefore(b,hp)}
+else b.style.cssText='position:fixed;top:48px;right:8px;z-index:2147483000;padding:6px 10px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7';
+})();
+</script>
 </body>
 </html>

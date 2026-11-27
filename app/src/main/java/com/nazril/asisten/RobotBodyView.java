@@ -40,7 +40,49 @@ public class RobotBodyView extends FrameLayout {
     }
     public int getShape() { return shape; }
 
-    private static RobotBodyView inst;
+    private int kShape = 0, kColor = 0; private String kIsi = ""; private long kLoad = 0;
+private void kMuat() {
+long n = System.currentTimeMillis();
+if (n - kLoad < 1000) return;
+kLoad = n;
+try { android.content.SharedPreferences sp = getContext().getSharedPreferences("p", 0);
+kShape = sp.getInt("k_shape", 0); kColor = sp.getInt("k_color", 0); kIsi = sp.getString("k_isi", ""); } catch (Exception e) { }
+}
+private boolean isiAda() { kMuat(); return kIsi != null && kIsi.length() > 0; }
+private void poly(Canvas c, int n, float r1, float r2, Paint p) {
+android.graphics.Path pa = new android.graphics.Path();
+int tot = r2 > 0 ? n * 2 : n;
+for (int i = 0; i < tot; i++) {
+double a = -Math.PI / 2 + 2 * Math.PI * i / tot;
+float rr = (r2 > 0 && i % 2 == 1) ? r2 : r1;
+float x = (float) Math.cos(a) * rr, y = (float) Math.sin(a) * rr;
+if (i == 0) pa.moveTo(x, y); else pa.lineTo(x, y);
+}
+pa.close(); c.drawPath(pa, p);
+}
+private void drawBodyKostum(Canvas c, float s, float br, Paint p) {
+kMuat();
+float r = s * 0.36f * br;
+p.setStyle(Paint.Style.FILL);
+p.setColor(kColor == 0 ? 0xFF3B82F6 : kColor);
+switch (kShape) {
+case 1: c.drawRoundRect(new RectF(-r, -r, r, r), r * 0.4f, r * 0.4f, p); break;
+case 2: c.drawRect(-r * 0.95f, -r * 0.95f, r * 0.95f, r * 0.95f, p); break;
+case 3: c.drawOval(new RectF(-r * 0.85f, -r * 1.1f, r * 0.85f, r * 1.0f), p); break;
+case 4: poly(c, 6, r * 1.05f, 0, p); break;
+case 5: poly(c, 4, r * 1.2f, 0, p); break;
+case 6: poly(c, 5, r * 1.2f, r * 0.55f, p); break;
+default: c.drawCircle(0, 0, r, p);
+}
+if (kIsi != null && kIsi.length() > 0) {
+int len = kIsi.codePointCount(0, kIsi.length());
+p.setColor(0xFFFFFFFF); p.setTextAlign(Paint.Align.CENTER);
+p.setTextSize(r * (len <= 1 ? 1.1f : Math.min(1.0f, 1.8f / len)));
+c.drawText(kIsi, 0, -(p.ascent() + p.descent()) / 2, p);
+p.setTextAlign(Paint.Align.LEFT);
+}
+}
+private static RobotBodyView inst;
 @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); inst = this; }
 @Override protected void onDetachedFromWindow() { super.onDetachedFromWindow(); if (inst == this) inst = null; }
 public static void aksiGlobal(String nama, String teks) { if (inst != null) inst.aksi(nama, teks); }
@@ -163,8 +205,8 @@ public void poke() {
             c.translate(dx, dy + lie * s * 0.1f);
             p.setStyle(Paint.Style.FILL);
             p.setColor(0xFF3B82F6);
-            c.drawCircle(0, 0, s * 0.36f * breathe, p);
-            p.setColor(0xFFFFFFFF);
+            drawBodyKostum(c, s, breathe, p);
+            p.setColor(isiAda() ? 0x00FFFFFF : 0xFFFFFFFF);
             if (sleep || (t % 4f) < 0.15f) {
                 p.setStyle(Paint.Style.STROKE);
                 p.setStrokeWidth(s * 0.025f);
