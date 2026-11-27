@@ -134,7 +134,7 @@ var legs={};
 var last=Date.now(),act=0,actStart=0,actEnd=0,lie=0,blinkUntil=0,nextBlink=3,lastFrame=0;
 var cur={r:0,l:0,h:0,s:0};
 function poke(){last=Date.now();act=0;actEnd=0;}
-function pick(now){var n;do{n=Math.floor(Math.random()*8);}while(n==act);
+function pick(now){var n;do{n=Math.floor(Math.random()*11);}while(n==act);
  act=n;actStart=now;var d=6000+Math.random()*8000;
  if(n==7)d=20000+Math.random()*20000;if(n==6)d=2500;actEnd=now+d;}
 function frame(){
@@ -145,14 +145,14 @@ function frame(){
  if(now-last<8000){act=0;actStart=now;actEnd=0;}else if(now>=actEnd){pick(now);}
  var sleep=(act==7);
  var t=now/1000,at=(now-actStart)/1000;
- var dx=0,dy=0,ry=-.18,rz=0,hy=.1,aR=0,aL=0,sw=0,sy=1,k,q;
+ var hx=0,dx=0,dy=0,ry=-.18,rz=0,hy=.1,aR=0,aL=0,sw=0,sy=1,k,q;
  switch(act){
   case 1:dy=Math.abs(Math.sin(at*5))*.35;aR=.4+Math.sin(at*5)*.4;aL=-.2+Math.sin(at*5)*.25;sw=Math.sin(at*5)*.3;break;
   case 2:aR=1.75+Math.sin(at*9)*.3;rz=Math.sin(at*3)*.03;break;
   case 3:dx=Math.sin(at*3)*.35;rz=Math.sin(at*3)*.1;dy=Math.abs(Math.sin(at*6))*.15;aR=.7+Math.sin(at*6)*.5;aL=-.35+Math.sin(at*6)*.35;sw=Math.sin(at*6)*.25;break;
   case 4:hy=Math.sin(at*1.2)*.6;break;
   case 5:k=.5+.5*Math.sin(at*1.5);aR=1.7*k;aL=-.9*k;sy=1+.04*k;break;
-  case 6:q=Math.min(at/2.5,1);ry+=Math.PI*2*q;dy=Math.sin(Math.PI*q)*.4;break;
+  case 6:q=Math.min(at/2.5,1);ry+=Math.PI*2*q;dy=Math.sin(Math.PI*q)*.4;break; case 8:var j=Math.abs(Math.sin(at*4));dy=j*.7;sy=.92+.12*j;aR=1.2+.5*j;aL=-1.2-.5*j;sw=Math.sin(at*8)*.2;break; case 9:rz=Math.sin(at*8)*.12;dx=Math.sin(at*4)*.2;aR=.7+Math.sin(at*8)*.4;aL=-.7+Math.sin(at*8)*.4;sw=Math.sin(at*8)*.25;break; case 10:hx=Math.sin(at*4)*.25;aR=.25;aL=-.25;dy=Math.sin(at*4)*.03;break;
  }
  lie+=((sleep?1:0)-lie)*.12;
  cur.r+=(aR-cur.r)*.25;cur.l+=(aL-cur.l)*.25;cur.h+=(hy-cur.h)*.2;cur.s+=(sw-cur.s)*.25;
@@ -160,7 +160,7 @@ function frame(){
  root.rotation.z=rz-lie*1.4;
  root.scale.set(1-lie*.12,sy-lie*.12,1-lie*.12);
  robot.rotation.y=ry;
- head.rotation.y=cur.h;head.rotation.z=-.06+Math.sin(t*1.1)*.035;
+ head.rotation.y=cur.h;head.rotation.x=hx;head.rotation.z=-.06+Math.sin(t*1.1)*.035;
  arms[1].rotation.z=cur.r;arms[-1].rotation.z=cur.l;
  legs[1].rotation.x=cur.s;legs[-1].rotation.x=-cur.s;
  if(t>nextBlink){blinkUntil=now+160;nextBlink=t+3+Math.random()*3;}

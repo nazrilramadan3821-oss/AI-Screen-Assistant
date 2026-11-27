@@ -11,7 +11,7 @@ import java.util.Random;
 public class RobotBodyView extends FrameLayout {
     public static final int BALL = 0, ROUND = 1, BOX = 2, SHAPE3D = 3;
     private static final int SANTAI = 0, MAIN = 1, LAMBAI = 2, MENARI = 3,
-        CELINGAK = 4, REGANG = 5, PUTAR = 6, TIDUR = 7;
+        CELINGAK = 4, REGANG = 5, PUTAR = 6, TIDUR = 7, LOMPAT = 8, GULING = 9;
 
     private int shape;
     private long lastTouch = System.currentTimeMillis();
@@ -65,12 +65,12 @@ public class RobotBodyView extends FrameLayout {
 
     private void pickNext(long now) {
         int n;
-        do { n = rnd.nextInt(8); } while (n == act);
+        do { n = rnd.nextInt(10); } while (n == act);
         act = n;
         actStart = now;
         long dur = 6000 + rnd.nextInt(8000);
         if (n == TIDUR) dur = 20000 + rnd.nextInt(20000);
-        if (n == PUTAR) dur = 2500;
+        if (n == PUTAR) dur = 2500; if (n == GULING) dur = 3000; if (n == LOMPAT) dur = 4000;
         actEnd = now + dur;
     }
 
@@ -119,7 +119,7 @@ public class RobotBodyView extends FrameLayout {
             case REGANG:
                 sy = 1f + 0.08f * (float) Math.sin(at * 2.5f);
                 sx = 1f - 0.04f * (float) Math.sin(at * 2.5f); break;
-            case PUTAR: {
+            case LOMPAT: { float j = (float) Math.abs(Math.sin(at * 4)); dy = -j * s * 0.15f; sy = 0.85f + 0.3f * j; sx = 1.15f - 0.2f * j; break; } case GULING: { float g = Math.min(at / 3f, 1f); rot = 720f * g; dy = -(float) Math.sin(Math.PI * g) * s * 0.06f; break; } case PUTAR: {
                 float k = Math.min(at / 2.5f, 1f);
                 rot = 360f * k;
                 dy = -(float) Math.sin(Math.PI * k) * s * 0.08f; break; }
