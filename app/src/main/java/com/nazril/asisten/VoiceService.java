@@ -49,7 +49,7 @@ public class VoiceService extends Service {
         PendingIntent pi = PendingIntent.getService(this, 1, st, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, ch) : new Notification.Builder(this);
         b.setContentTitle("NIKO mendengarkan")
-         .setContentText("Ucapkan: niko, buka TikTok")
+         .setContentText("Ucapkan: " + (namaPanggil().isEmpty() ? "niko" : namaPanggil()) + ", buka TikTok")
          .setSmallIcon(android.R.drawable.ic_btn_speak_now)
          .addAction(android.R.drawable.ic_delete, "Stop", pi);
         Notification n = b.build();
@@ -88,11 +88,26 @@ public class VoiceService extends Service {
         }
     }
 
+    String namaPanggil() {
+        try {
+            return getSharedPreferences("p", MODE_PRIVATE).getString("nama", "").trim().toLowerCase(Locale.ROOT);
+        } catch (Exception e) { return ""; }
+    }
+
+    java.util.List<String> kataPanggil() {
+        java.util.ArrayList<String> l = new java.util.ArrayList<String>();
+        String n = namaPanggil();
+        if (n.length() >= 2) l.add(n);
+        if (!l.contains("niko")) l.add("niko");
+        if (!l.contains("nico")) l.add("nico");
+        return l;
+    }
+
     boolean handle(String t) {
         String s = t.toLowerCase(Locale.ROOT).trim();
         long now = System.currentTimeMillis();
         int k = -1;
-        for (String w : new String[]{"niko", "nico"}) {
+        for (String w : kataPanggil()) {
             int x = s.indexOf(w);
             if (x >= 0) { k = x + w.length(); break; }
         }
@@ -106,7 +121,7 @@ public class VoiceService extends Service {
     }
 
     boolean run(String s) {
-        if (s.contains("berhenti") || s.contains("matikan niko")) { stopSelf(); return true; }
+        if (s.contains("berhenti") || (s.contains("matikan niko") || (!namaPanggil().isEmpty() && s.contains("matikan " + namaPanggil())))) { stopSelf(); return true; }
         if (s.startsWith("buka ") || s.startsWith("jalankan ")) {
             return open(s.substring(s.indexOf(' ') + 1));
         }
