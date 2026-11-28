@@ -77,13 +77,44 @@ sayap[0].rotation.y=-ab(sn(T*14));sayap[1].rotation.y=ab(sn(T*14))}
 const TH=[['#1f6dff','#5ff3ff'],['#ff3d5e','#ffd1a0'],['#14b86a','#a6ffd2'],['#9b4dff','#e6c4ff']];
 function setColor(i){const c=TH[(+i||0)%TH.length];blue.color.set(c[0]);glow.color.set(c[1]);rim.color.set(c[0]);gc=c[1];last=''}
 const names=Object.keys(POSES);let cur='wave',T=0,TT=0,speak=0,last='',nx=4;
-function setPose(k,hold){if(POSES[k]){if(k!=cur){cur=k;T=0;P.ry=Math.atan2(Math.sin(P.ry),Math.cos(P.ry))}nx=TT+(hold||4+Math.random()*3)}}
-function randPose(){let k;do{k=names[Math.floor(Math.random()*names.length)]}while(k==cur);setPose(k)}
+const dipakai={},JEDA=60000;let tAksi=0;
+function setPose(k,hold){if(POSES[k]){if(k!=cur){const n=Date.now();dipakai[cur]=n;dipakai[k]=n;cur=k;T=0;P.ry=Math.atan2(Math.sin(P.ry),Math.cos(P.ry))}nx=TT+(hold||4+Math.random()*3)}}
+const bebas=k=>k!=cur&&Date.now()-(dipakai[k]||0)>=JEDA,acak=a=>a[Math.floor(Math.random()*a.length)];
+const BICARA=['nod','wave','look','pikir','thumbs','goyang','tepuk','stand','stretch','hormat','geleng','malu'];
+function pilih(list,hold){let c=bebas(list[0])?[list[0]]:list.filter(bebas);if(!c.length)c=BICARA.filter(bebas);if(!c.length)c=names.filter(bebas);
+if(!c.length)c=[names.filter(k=>k!=cur).sort((x,y)=>(dipakai[x]||0)-(dipakai[y]||0))[0]];setPose(acak(c),hold)}
+function randPose(){const c=names.filter(bebas);if(c.length)setPose(acak(c));else pilih(BICARA)}
 window.setPose=setPose;window.setColor=setColor;window.speak=s=>{speak=s||3};
-window.robotBicara=function(teks,ms){speak=(ms||5000)/1000;if(cur=='sit'||cur=='bow'||cur=='surprise')setPose('stand',speak+1);else nx=Math.max(nx,TT+speak)};
-window.poke=function(){setPose('surprise',3)};
-const ACT=['stand','hore','wave','dance','look','stretch','spin','tidur','jump','goyang','nod','run','bola','kupu'];
-window.setAksi=function(n,d){setPose(ACT[(n|0)%ACT.length],(d||4000)/1000+1.5)};
+const KATA=[
+['bola|gol|tendang',['bola','tendang']],
+['kupu|bunga|taman',['kupu','look']],
+['terbang|langit|awan',['terbang','jump']],
+['joget|nari|menari|musik|lagu|goyang',['dance','goyang','robot','spin']],
+['ngantuk|tidur|bobo|hoam',['tidur','sit','stretch']],
+['capek|lelah|istirahat|mager|santai|rehat',['sit','stretch','tidur']],
+['pusing|puyeng|mumet',['geleng','sit','pikir']],
+['olahraga|lari|gerak|jalan',['run','walk','jongkok','stretch']],
+['marah|kesal|sebel|pukul|lawan',['tinju','geleng','tendang']],
+['sedih|maaf|sorry|yah|gagal|kecewa|nangis|kangen',['sedih','bow','pikir']],
+['wah|wow|waduh|kaget|astaga|hah|loh|lho|serius',['surprise','jump','geleng']],
+['halo|hallo|hai|hay|pagi|siang|sore|malam|dadah|bye|jumpa',['wave','hormat','bow']],
+['makasih|terima kasih|permisi',['bow','hormat','wave']],
+['siap|laksanakan',['hormat','thumbs','nod']],
+['hore|yey|yeay|asik|asyik|senang|semangat|menang|yuhu|ayo|yuk',['hore','jump','tepuk','dance']],
+['keren|bagus|hebat|mantap|pintar|jago|selamat',['thumbs','tepuk','hore']],
+['malu|hehe|hihi|cie|sayang|imut|lucu|gemes',['malu','goyang','spin']],
+['hmm|kenapa|gimana|bagaimana|apa|siapa|mana|kapan|bingung|mungkin|pikir',['pikir','look','geleng']],
+['tidak|nggak|enggak|gak|ga|jangan|bukan',['geleng','pikir']],
+['iya|oke|ok|baik|betul|benar|beres',['nod','thumbs','hormat']]
+].map(([r,p])=>[new RegExp('\\b('+r+')(nya|lah|kah|deh|dong)?\\b','i'),p]);
+window.robotBicara=function(teks,ms){speak=(ms||5000)/1000;const hold=speak+.5,baru=Date.now()-tAksi<400;tAksi=0;
+const cocok=KATA.filter(x=>x[0].test(String(teks||''))).map(x=>x[1]);if(!cocok.length&&String(teks||'').includes('?'))cocok.push(['pikir','look']);
+const ganti=k=>{if(baru)delete dipakai[cur];setPose(k,hold)};
+for(const g of cocok){if(baru&&g.includes(cur)){nx=TT+hold;return}const c=g.filter(bebas);if(c.length){ganti(acak(c));return}}
+if(baru){nx=TT+hold;return}pilih([acak(BICARA)],hold)};
+window.poke=function(){pilih(['surprise','jump','malu','hore','terbang'],3)};
+const ACT=[['stand','look','stretch','nod'],['hore','jump','tepuk','run'],['wave','hormat','bow'],['dance','goyang','robot','spin'],['look','pikir','geleng'],['stretch','jongkok','hormat'],['spin','dance','robot'],['tidur','sit'],['jump','hore','terbang'],['goyang','dance','robot'],['nod','thumbs','bow'],['run','walk','jongkok'],['bola','tendang'],['kupu','look','terbang']];
+window.setAksi=function(n,d){pilih(ACT[(n|0)%ACT.length],(d||4000)/1000+1.5);tAksi=Date.now()};
 addEventListener('message',e=>{const d=e.data;if(typeof d=='string'){if(POSES[d])setPose(d,8);else if(d=='speak'||d=='talk')speak=3;else if(d=='stop')speak=0}
 else if(d&&typeof d=='object'){if(d.pose)setPose(d.pose,8);if(d.speak)speak=+d.speak||3;if(d.color!=null)setColor(d.color)}});
 
