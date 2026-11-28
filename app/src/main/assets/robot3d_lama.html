@@ -1,0 +1,205 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+#z{position:fixed;right:8%;top:6%;color:#fff;font:bold 22px Arial;opacity:0;transition:opacity .4s}</style></head>
+<body><div id="z">z</div>
+<script src="three.min.js"></script>
+<script>
+// Ganti warna robot di sini
+var WARNA={badan:0x0b63f6,gelapBiru:0x0840b8,layar:0x040a1c,putih:0xe6f1ff,cahaya:0x35e0ff,pipi:0xff6fb5};
+
+var W=innerWidth||96,H=innerHeight||96;
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(35,W/H,.1,100);
+camera.position.set(0,3.5,11.8);camera.lookAt(0,2.75,0);
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setClearColor(0x000000,0);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(W,H,false);
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xcfeaff,0x16286a,.9));
+var key=new THREE.DirectionalLight(0xffffff,1.5);key.position.set(4,8,7);scene.add(key);
+var rim=new THREE.PointLight(0x00cfff,1.4,0);rim.position.set(-5,3,2);scene.add(rim);
+var rim2=new THREE.PointLight(0x3a6bff,1,0);rim2.position.set(5,2,-2);scene.add(rim2);
+
+function warna(c){var k=new THREE.Color(c);if(parseInt(THREE.REVISION,10)<152)k.convertSRGBToLinear();return k;}
+function mat(c,m,r){return new THREE.MeshStandardMaterial({color:warna(c),metalness:m,roughness:r});}
+function lampu(c){return new THREE.MeshBasicMaterial({color:warna(c),toneMapped:false,side:THREE.DoubleSide});}
+var blue=mat(WARNA.badan,.35,.22),blue2=mat(WARNA.gelapBiru,.35,.25),dark=mat(WARNA.layar,.3,.2),
+    white=mat(WARNA.putih,.15,.3),glow=lampu(WARNA.cahaya),pink=lampu(WARNA.pipi);
+
+function add(p,geo,m,x,y,z){var o=new THREE.Mesh(geo,m);o.position.set(x,y,z);p.add(o);return o;}
+var bola=new THREE.SphereGeometry(1,32,22);
+function ball(p,x,y,z,sx,sy,sz,m){var o=add(p,bola,m,x,y,z);o.scale.set(sx,sy,sz);return o;}
+function ring(p,x,y,z,r,t,m,arc){return add(p,new THREE.TorusGeometry(r,t,10,48,arc||Math.PI*2),m,x,y,z);}
+// batang dari titik a ke titik b
+function limb(p,a,b,r1,r2,m){
+ var A=new THREE.Vector3(a[0],a[1],a[2]),B=new THREE.Vector3(b[0],b[1],b[2]),d=B.clone().sub(A),len=d.length();
+ var o=add(p,new THREE.CylinderGeometry(r2,r1,len,20),m,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2);
+ o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return o;
+}
+
+// Lingkaran cahaya di bawah robot
+var alas=new THREE.Group();alas.position.y=-.08;scene.add(alas);
+var piring=add(alas,new THREE.CircleGeometry(2.25,48),new THREE.MeshBasicMaterial({color:warna(0x0a3fb0),transparent:true,opacity:.45,toneMapped:false}),0,-.04,0);
+piring.rotation.x=-Math.PI/2;
+var cincin=[1.45,1.9,2.3].map(function(r,i){var o=ring(alas,0,0,0,r,i==1?.055:.032,glow);o.rotation.x=Math.PI/2;return o;});
+
+var root=new THREE.Group();root.position.y=2.8;scene.add(root);
+var robot=new THREE.Group();robot.position.y=-2.8;root.add(robot);
+
+// ===== Kepala =====
+var head=new THREE.Group();head.position.set(0,4.05,0);robot.add(head);
+ball(head,0,0,0,1.38,1.18,1.1,blue);
+var F={y:-.08,z:.55,x:1.1,h:.82,d:.72};
+ball(head,0,F.y,F.z,F.x,F.h,F.d,dark);
+// tempel benda pada permukaan layar wajah
+function tempel(o,x,y,jarak){
+ var u=x/F.x,v=y/F.h,w=Math.sqrt(Math.max(0,1-u*u-v*v));
+ var n=new THREE.Vector3(u/F.x,v/F.h,w/F.d).normalize();
+ o.position.set(x+n.x*jarak,F.y+y+n.y*jarak,F.z+F.d*w+n.z*jarak);
+ o.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);head.add(o);return o;
+}
+function mata(x){var g=new THREE.Group();ring(g,0,0,0,.23,.065,glow,Math.PI);
+ ball(g,-.23,0,0,.065,.065,.065,glow);ball(g,.23,0,0,.065,.065,.065,glow);return tempel(g,x,.06,.07);}
+var eyeL=mata(-.45),eyeR=mata(.45);
+var mulut=tempel(new THREE.Mesh(new THREE.CircleGeometry(.23,32,Math.PI,Math.PI),glow),0,-.2,.06);
+[-.72,.72].forEach(function(x){var g=new THREE.Group();ball(g,0,0,0,.14,.075,.02,pink);tempel(g,x,-.22,.025);});
+ball(head,0,.97,.62,.36,.08,.2,glow);
+// bando headphone
+var bando=ring(head,0,.02,-.05,1.44,.11,blue2,Math.PI);bando.scale.y=.9;
+[-1,1].forEach(function(s){
+ ball(head,s*1.34,-.03,0,.3,.62,.62,white);
+ ball(head,s*1.49,-.03,.02,.28,.52,.52,blue);
+ var r=ring(head,s*1.74,-.03,.07,.29,.05,glow);r.rotation.y=s*1.25;
+ ball(head,s*1.70,-.03,.06,.1,.2,.2,blue2);
+ limb(head,[s*1.4,.45,0],[s*1.6,1.42,-.05],.1,.05,blue);
+ ball(head,s*1.61,1.47,-.05,.09,.13,.09,glow);
+});
+
+// ===== Badan =====
+ball(robot,0,2.95,0,.34,.26,.32,dark);
+ball(robot,0,2.38,0,.82,.66,.6,blue);
+ball(robot,0,2.68,0,.7,.28,.52,white);
+ball(robot,0,2.62,.07,.64,.34,.55,blue);
+ball(robot,0,1.86,0,.47,.34,.4,dark);
+ball(robot,0,1.55,0,.62,.3,.46,blue);
+ball(robot,0,1.55,.42,.22,.15,.08,white);
+ring(robot,0,2.4,.62,.29,.045,glow);
+var kanvas=document.createElement('canvas');kanvas.width=kanvas.height=128;
+var k=kanvas.getContext('2d');k.fillStyle='#19a8ff';k.fillRect(0,0,128,128);
+k.fillStyle='#fff';k.font='bold 64px Arial';k.textAlign='center';k.textBaseline='middle';k.fillText('AI',64,68);
+var tulisan=new THREE.CanvasTexture(kanvas);tulisan.encoding=THREE.sRGBEncoding;
+add(robot,new THREE.CircleGeometry(.26,32),new THREE.MeshBasicMaterial({map:tulisan,toneMapped:false}),0,2.4,.635);
+
+// ===== Tangan =====
+var arms={};
+[-1,1].forEach(function(s){
+ var a=new THREE.Group();robot.add(a);a.position.set(s*.9,2.6,0);
+ ball(a,s*.08,0,0,.36,.36,.36,blue);
+ if(s<0){ // jempol
+  limb(a,[-.1,-.05,0],[-.55,-.52,.15],.15,.15,dark);
+  ball(a,-.55,-.52,.15,.2,.2,.2,white);
+  limb(a,[-.55,-.52,.15],[-.34,-.22,.82],.22,.31,blue);
+  ball(a,-.31,-.18,.93,.31,.29,.27,blue2);
+  for(var i=0;i<3;i++)limb(a,[-.47,-.05-i*.15,1.16],[-.13,-.05-i*.15,1.16],.075,.075,blue);
+  limb(a,[-.36,0,.98],[-.36,.4,1.0],.13,.1,blue);
+  ball(a,-.36,.4,1.0,.1,.11,.1,blue);
+ }else{
+  limb(a,[.1,-.05,0],[.45,-.55,0],.15,.15,dark);
+  ball(a,.45,-.55,0,.2,.2,.2,white);
+  limb(a,[.45,-.55,0],[.66,-1.05,.12],.2,.3,blue);
+  ball(a,.69,-1.15,.14,.27,.24,.26,blue2);
+  for(var j=0;j<3;j++)ball(a,.69+(j-1)*.16,-1.37,.2,.08,.15,.09,blue);
+ }
+ arms[s]=a;
+});
+
+// ===== Kaki =====
+var legs={};
+[-1,1].forEach(function(s){
+ var l=new THREE.Group();robot.add(l);l.position.set(s*.4,1.48,0);
+ limb(l,[0,0,0],[s*.18,-.52,0],.19,.19,dark);
+ ball(l,s*.18,-.52,.06,.28,.22,.28,white);
+ limb(l,[s*.34,-1.2,.05],[s*.19,-.52,0],.42,.25,blue);
+ ball(l,s*.37,-1.27,.22,.48,.28,.64,blue);
+ ball(l,s*.37,-1.24,.84,.25,.065,.05,glow);
+ legs[s]=l;
+});
+
+var last=Date.now(),act=0,actStart=0,actEnd=0,lie=0,blinkUntil=0,nextBlink=3,lastFrame=0;
+var cur={r:0,l:0,h:0,s:0};
+var bolaMain=new THREE.Group();scene.add(bolaMain);
+ball(bolaMain,0,0,0,.5,.5,.5,white);
+[[0,0,.46],[.34,.28,.2],[-.34,-.24,.22],[.1,-.4,.24],[-.2,.4,.2]].forEach(function(q){ball(bolaMain,q[0],q[1],q[2],.13,.13,.08,dark);});
+bolaMain.visible=false;
+var kupu=new THREE.Group();scene.add(kupu);
+var jingga=lampu(0xff8a1f),sayap=[-1,1].map(function(s){var g=new THREE.Group();kupu.add(g);
+ ball(g,s*.34,.14,0,.34,.3,.03,jingga);ball(g,s*.27,-.22,0,.25,.2,.03,pink);return g;});
+ball(kupu,0,0,0,.07,.4,.07,dark);kupu.visible=false;
+function poke(){last=Date.now();act=0;actEnd=0;}function setAksi(n,d){var t0=Date.now();last=0;act=n;actStart=t0;actEnd=t0+d;}
+function pick(now){var n;do{n=Math.floor(Math.random()*14);}while(n==act);
+ act=n;actStart=now;var d=6000+Math.random()*8000;
+ if(n==7)d=20000+Math.random()*20000;if(n==6)d=2500;actEnd=now+d;}
+function frame(){
+ requestAnimationFrame(frame);
+ var now=Date.now();
+ if(now-lastFrame<(act==7?100:33))return;
+ lastFrame=now;
+ if(now-last<8000){act=0;actStart=now;actEnd=0;}else if(now>=actEnd){pick(now);}
+ var sleep=(act==7);
+ var t=now/1000,at=(now-actStart)/1000;
+ var hx=0,dx=0,dy=0,ry=-.18,rz=0,hy=.1,aR=0,aL=0,sw=0,sy=1,k,q;
+ switch(act){
+  case 1:dy=Math.abs(Math.sin(at*5))*.35;aR=.4+Math.sin(at*5)*.4;aL=-.2+Math.sin(at*5)*.25;sw=Math.sin(at*5)*.3;break;
+  case 2:aR=1.75+Math.sin(at*9)*.3;rz=Math.sin(at*3)*.03;break;
+  case 3:dx=Math.sin(at*3)*.35;rz=Math.sin(at*3)*.1;dy=Math.abs(Math.sin(at*6))*.15;aR=.7+Math.sin(at*6)*.5;aL=-.35+Math.sin(at*6)*.35;sw=Math.sin(at*6)*.25;break;
+  case 4:hy=Math.sin(at*1.2)*.6;break;
+  case 5:k=.5+.5*Math.sin(at*1.5);aR=1.7*k;aL=-.9*k;sy=1+.04*k;break;
+  case 6:q=Math.min(at/2.5,1);ry+=Math.PI*2*q;dy=Math.sin(Math.PI*q)*.4;break; case 8:var j=Math.abs(Math.sin(at*4));dy=j*.7;sy=.92+.12*j;aR=1.2+.5*j;aL=-1.2-.5*j;sw=Math.sin(at*8)*.2;break; case 9:rz=Math.sin(at*8)*.12;dx=Math.sin(at*4)*.2;aR=.7+Math.sin(at*8)*.4;aL=-.7+Math.sin(at*8)*.4;sw=Math.sin(at*8)*.25;break; case 11:dx=Math.sin(at*2)*1.1;ry=Math.cos(at*2)>0?.9:-.9;dy=Math.abs(Math.sin(at*12))*.25;sw=Math.sin(at*12)*.8;aR=.6+Math.sin(at*12)*.5;aL=-.6+Math.sin(at*12)*.5;break;
+  case 12:dx=-.6+Math.sin(at*4)*.15;ry=.35;q=Math.abs(Math.sin(at*4));sw=-Math.max(0,Math.sin(at*4))*.9;aR=.8;aL=-.8;hx=.18;bolaMain.position.set(1.7+q*.5,.45+q*1.7,1.2);bolaMain.rotation.z=-at*5;break;
+  case 13:q=Math.sin(at*1.5);kupu.position.set(q*2.3,4.6+Math.sin(at*4)*.5,1.6);dx=Math.sin(at*1.5-.8)*.9;hy=q*.5;hx=-.2;ry=q*.4;dy=Math.max(0,Math.sin(at*3))*.6;aR=1.9+Math.sin(at*6)*.3;aL=-.9;sw=Math.sin(at*8)*.35;sayap[0].rotation.y=Math.sin(at*18)*.9;sayap[1].rotation.y=-Math.sin(at*18)*.9;break;
+  case 10:hx=Math.sin(at*4)*.25;aR=.25;aL=-.25;dy=Math.sin(at*4)*.03;break;
+ }
+ bolaMain.visible=(act==12);kupu.visible=(act==13);
+ lie+=((sleep?1:0)-lie)*.12;
+ cur.r+=(aR-cur.r)*.25;cur.l+=(aL-cur.l)*.25;cur.h+=(hy-cur.h)*.2;cur.s+=(sw-cur.s)*.25;
+ root.position.set(dx,2.8+dy+Math.sin(t*2)*.04-lie*1.55,0);
+ root.rotation.z=rz-lie*1.4;
+ root.scale.set(1-lie*.12,sy-lie*.12,1-lie*.12);
+ robot.rotation.y=ry;
+ head.rotation.y=cur.h;head.rotation.x=hx;head.rotation.z=-.06+Math.sin(t*1.1)*.035;
+ arms[1].rotation.z=cur.r;arms[-1].rotation.z=cur.l;
+ legs[1].rotation.x=cur.s;legs[-1].rotation.x=-cur.s;
+ if(t>nextBlink){blinkUntil=now+160;nextBlink=t+3+Math.random()*3;}
+ var closed=sleep||now<blinkUntil;
+ eyeL.scale.y=eyeR.scale.y=closed?.35:1;
+ mulut.visible=!sleep;
+ cincin.forEach(function(o,i){var s=1+Math.sin(t*3-i*1.2)*.025;o.scale.set(s,s,1);});
+ document.getElementById('z').style.opacity=lie>.8?1:0;
+ renderer.render(scene,camera);
+}
+frame();
+addEventListener('resize',function(){W=innerWidth;H=innerHeight;renderer.setSize(W,H,false);camera.aspect=W/H;camera.updateProjectionMatrix();});
+</script><style>
+#gelembung{position:fixed;left:50%;top:8%;transform:translateX(-50%) scale(.8);max-width:80%;padding:10px 16px;border-radius:18px;background:#fff;color:#111;font:600 14px sans-serif;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;z-index:99}
+#gelembung.tampil{opacity:1;transform:translateX(-50%) scale(1)}
+#gelembung:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fff}
+</style>
+<div id="gelembung"></div>
+<script>
+(function(){
+var el=document.getElementById("gelembung");
+window.robotBicara=function(teks,ms){
+el.textContent=teks;el.classList.add("tampil");
+clearTimeout(window._gelT);
+window._gelT=setTimeout(function(){el.classList.remove("tampil")},ms||5000);
+};
+
+})();
+</script>
+</body></html>

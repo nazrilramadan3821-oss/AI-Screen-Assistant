@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Asisten</title>
+<style>
+:root{--bg:#0b1020;--panel:#131a30;--line:#24304f;--text:#e8ecf8;--mut:#8a96b8;--a:#3b82f6;--b:#7c3aed}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;height:100dvh}
+header{padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+header b{font-size:18px}
+header span{color:var(--mut);font-size:13px}
+#key{margin-left:auto}
+#clear,#key{background:none;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:6px 12px}
+#chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:10px 14px;border-radius:16px;white-space:pre-wrap;word-wrap:break-word}
+.me{align-self:flex-end;background:linear-gradient(135deg,var(--a),var(--b));border-bottom-right-radius:4px}
+.ai{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg img{max-width:100%;border-radius:10px;display:block;margin-bottom:6px}
+.msg code{background:#0006;padding:1px 5px;border-radius:5px}
+.err{border-color:#7f1d1d;color:#fecaca}
+.empty{margin:auto;text-align:center;color:var(--mut);max-width:300px}
+.empty h2{color:var(--text);margin:0 0 6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.chip{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:8px 14px;font-size:14px}
+#bar{padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+#preview{display:none;align-items:center;gap:10px;margin-bottom:8px}
+#preview img{height:56px;border-radius:8px}
+#preview button{background:none;border:none;color:var(--mut);font-size:14px}
+#row{display:flex;gap:8px;align-items:flex-end}
+.ic{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:20px}
+textarea{flex:1;resize:none;max-height:120px;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 12px;font:inherit}
+textarea:focus{outline:2px solid var(--a);outline-offset:0}
+#send{flex:none;height:44px;padding:0 16px;border:none;border-radius:12px;color:#fff;font-weight:600;background:linear-gradient(135deg,var(--a),var(--b))}
+button:disabled{opacity:.5}
+.dots{display:inline-flex;gap:4px}.dots i{width:7px;height:7px;border-radius:50%;background:var(--mut);animation:b 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.3}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.dots i{animation:none}}
+
+#nkOrb{position:fixed;right:14px;bottom:92px;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7db4ff,#1a56ff);box-shadow:0 0 12px #1a56ff88;z-index:9;cursor:pointer}
+#nkOrb.listen{animation:nkp 1.1s infinite}
+#nkOrb.speak{animation:nkp .5s infinite;background:radial-gradient(circle at 35% 30%,#9dffd0,#12b886)}
+#nkOrb.think{opacity:.6}
+@keyframes nkp{50%{transform:scale(1.25);box-shadow:0 0 24px #4d8bff}}
+#nkPanel{position:fixed;inset:0;margin:auto;width:min(92vw,360px);height:fit-content;max-height:90vh;overflow:auto;background:#121a33;color:#e8ecff;border:1px solid #2a3358;border-radius:16px;padding:16px;z-index:20;display:flex;flex-direction:column;gap:12px}
+#nkPanel[hidden]{display:none}
+#nkPanel h3{margin:0;font-size:16px}
+#nkPanel label{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px}
+#nkPanel input[type=text],#nkPanel select{background:#0a0f1f;color:#e8ecff;border:1px solid #2a3358;border-radius:8px;padding:6px;max-width:150px}
+#nkPanel button{background:#4f6bff;color:#fff;border:0;border-radius:10px;padding:10px}
+
+#hsPanel{position:fixed;inset:0;margin:auto;width:min(92vw,380px);height:fit-content;max-height:85vh;overflow:auto;background:#121a33;color:#e8ecff;border:1px solid #2a3358;border-radius:16px;padding:16px;z-index:21;display:flex;flex-direction:column;gap:10px}
+#hsPanel[hidden]{display:none}
+#hsPanel h3{margin:0;font-size:16px}
+#hsPanel button{background:#4f6bff;color:#fff;border:0;border-radius:10px;padding:10px}
+#hsList{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.hsRow{display:flex;gap:6px}
+.hsRow .hsItem{flex:1;text-align:left;background:#0a0f1f;border:1px solid #2a3358;font-size:13px}
+.hsRow .hsDel{background:#3a2030;padding:10px 12px}
+
+/* === rapikan tampilan === */
+div:has(> #send){display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px}
+div:has(> #send) > :is(textarea,input:not([type])),
+div:has(> #send) > input[type=text]{order:-1;flex:1 1 100%;min-width:0;min-height:44px;box-sizing:border-box}
+div:has(> #send) > .ic{flex:0 0 auto}
+div:has(> #send) > #send{margin-left:auto;flex:0 0 auto}
+header button,.top button,#skinBtn,button[id*="kin"]{
+  background:transparent;color:inherit;border:1px solid rgba(255,255,255,.15);
+  border-radius:999px;padding:6px 14px;font:inherit}
+
+#txt{order:-1;flex:1 1 100%;min-width:0;min-height:44px;box-sizing:border-box}
+</style>
+<style>header{flex-wrap:wrap!important;row-gap:8px}header>span{display:none!important}header button{white-space:nowrap}</style>
+</head>
+<body>
+<header><b><svg class="logo" viewBox="0 0 128 128" width="26" height="26" style="vertical-align:middle;margin-right:8px"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="url(#lg)"/><rect x="26" y="34" width="76" height="52" rx="10" fill="none" stroke="#fff" stroke-width="7"/><path d="M64 44L69 60L85 65L69 70L64 86L59 70L43 65L59 60Z" fill="#fff"/><rect x="48" y="96" width="32" height="7" rx="3.5" fill="#fff"/></svg>AI Asisten</b><span>tanya, foto soal, pindai layar</span><button id="key">Kunci</button><button id="clear">Hapus</button></header>
+<main id="chat"></main>
+<div id="hsPanel" hidden>
+  <h3>Histori Obrolan</h3>
+  <div id="hsList"></div>
+  <button id="hsNew">Obrolan baru</button>
+  <button id="hsAll">Hapus semua histori</button>
+  <button id="hsClose">Tutup</button>
+</div>
+<div id="nkOrb"></div>
+<div id="nkPanel" hidden>
+  <h3>Pengaturan Suara NIKO</h3>
+  <label>Bacakan jawaban <input type="checkbox" id="nkSpeak"></label>
+  <label>Selalu mendengar <input type="checkbox" id="nkAlways"></label>
+  <label>Kata panggil <input type="text" id="nkWake"></label>
+  <label>Bahasa <select id="nkLang"><option value="id-ID">Indonesia</option><option value="en-US">English</option></select></label>
+  <label>Kecepatan suara <input type="range" id="nkRate" min="0.6" max="1.6" step="0.1"></label>
+  <button id="nkBg">Aktifkan NIKO di luar aplikasi</button>
+  <button id="nkBgOff">Matikan NIKO latar belakang</button>
+  <button id="nkAcc">Izin scroll dan ketuk (Aksesibilitas)</button>
+  <button id="nkBat">Izinkan jalan di latar (baterai)</button>
+  <button id="nkClose">Tutup</button>
+</div>
+<div id="bar">
+  <div id="preview"><img id="pimg" alt="Gambar terpilih"><button id="prm">Lepas gambar</button></div>
+  <div id="row">
+    <button class="ic" id="cam" title="Pilih gambar atau kamera" aria-label="Pilih gambar atau kamera">📷</button>
+    <button class="ic" id="scr" title="Pindai layar" aria-label="Pindai layar">🖥️</button>
+    <button class="ic" id="nkMic" title="Bicara" aria-label="Bicara">🎤</button>
+    <button class="ic" id="nkSet" title="Pengaturan suara" aria-label="Pengaturan suara">⚙️</button>
+    <button class="ic" id="hsBtn" title="Histori" aria-label="Histori">🕘</button>
+<button class="ic" id="genBtn" title="Buat gambar">🎨</button>
+    <textarea id="txt" rows="1" placeholder="Tulis pertanyaan atau soal…"></textarea>
+    <button id="send">Kirim</button>
+  </div>
+  <input type="file" id="file" accept="image/*" hidden>
+</div>
+<script>
+const MODEL = "gemini-3.6-flash";
+function getKey(){ try{return localStorage.getItem("gkey")||""}catch(e){return ""} }
+function getNama(){ try{return (localStorage.getItem("nama_ai")||"").trim()||"Nino"}catch(e){return "Nino"} }
+function askKey(){ const k = prompt("Tempel Gemini API Key (diawali AIza). Disimpan hanya di HP ini.", getKey()); if (k !== null) { try{Android.saveKey(k.trim()); Android.saveKey(k.trim()); localStorage.setItem("gkey", k.trim())}catch(e){} } return getKey(); }
+
+const chat = document.getElementById("chat"), txt = document.getElementById("txt"),
+  send = document.getElementById("send"), file = document.getElementById("file"),
+  preview = document.getElementById("preview"), pimg = document.getElementById("pimg");
+let history = [], image = null, busy = false;
+
+function showEmpty(){
+  chat.innerHTML = `<div class="empty"><h2>Halo, mau tanya apa?</h2>
+  Ketik soal, unggah foto soal, atau pindai layar.
+  <div class="chips">
+    <button class="chip" data-q="Jelaskan langkah demi langkah soal ini.">Jelaskan soal</button>
+    <button class="chip" data-q="Bacakan teks pada gambar ini.">Baca gambar</button>
+    <button class="chip" data-q="Rangkum isi layar ini.">Rangkum layar</button>
+  </div></div>`;
+  chat.querySelectorAll(".chip").forEach(c => c.onclick = () => { txt.value = c.dataset.q; txt.focus(); });
+}
+showEmpty();
+  
+// ===== FITUR SUARA NIKO =====
+let voiceEnabled = false;
+let waitingCommand = false;
+let recognition = null;
+
+function bicaraNiko(teks) {
+  if (!voiceEnabled) return;
+
+  speechSynthesis.cancel();
+
+  const suara = new SpeechSynthesisUtterance(teks);
+  suara.lang = "id-ID";
+  suara.rate = 1;
+  suara.pitch = 1;
+
+  speechSynthesis.speak(suara);
+}
+
+function mulaiNiko() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Browser belum mendukung pengenalan suara.");
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "id-ID";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
+  recognition.onresult = function(event) {
+    const hasil = event.results[event.results.length - 1];
+
+    if (!hasil.isFinal) return;
+
+    const ucapan = hasil[0].transcript.toLowerCase().trim();
+
+    if (!waitingCommand && ucapan.includes("niko")) {
+      const perintah = ucapan.replace(/.*?niko/, "").trim();
+
+      if (perintah) {
+        txt.value = perintah;
+        kirim();
+      } else {
+        waitingCommand = true;
+        bicaraNiko("Ya, saya mendengarkan.");
+      }
+
+    } else if (waitingCommand) {
+      waitingCommand = false;
+      txt.value = ucapan;
+      kirim();
+    }
+  };
+
+  recognition.onend = function() {
+    if (voiceEnabled) {
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  recognition.start();
+}
+
+function hentikanNiko() {
+  voiceEnabled = false;
+  waitingCommand = false;
+
+  if (recognition) recognition.stop();
+
+  speechSynthesis.cancel();
+}
+// ===== AKHIR FITUR NIKO =====
+
+// ===== NIKO NATIVE =====
+let nk={speak:true,always:true,wake:'niko',lang:'id-ID',rate:1};
+try{Object.assign(nk,JSON.parse(localStorage.getItem('nkset')||'{}'));}catch(e){}
+function nkSave(){try{localStorage.setItem('nkset',JSON.stringify(nk));}catch(e){}}
+const nkOrb=document.getElementById('nkOrb');
+let nkManual=false,nkStopped=false;
+function nkState(s){nkOrb.className=s||'';}
+function nkListen(manual){
+  if(!window.NikoNative){if(manual)alert('Fitur suara hanya jalan di aplikasi Android');return;}
+  nkManual=manual;nkStopped=false;nkState('listen');
+  NikoNative.listen(nk.lang);
+}
+function nkStop(){
+  nkStopped=true;
+  try{NikoNative.stop();}catch(e){}
+  try{speechSynthesis.cancel();}catch(e){}
+  nkState('');
+}
+function nkSpeak(t,done){
+  if(!nk.speak||!window.speechSynthesis||!t){if(done)done();return;}
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t);
+    u.lang=nk.lang;u.rate=nk.rate;
+    u.onstart=()=>nkState('speak');
+    u.onend=u.onerror=()=>{nkState('');if(done)done();};
+    speechSynthesis.speak(u);
+  }catch(e){if(done)done();}
+}
+async function nkSend(cmd){
+  txt.value=cmd;
+  await kirim();
+  await new Promise(r=>setTimeout(r,400));
+  while(busy) await new Promise(r=>setTimeout(r,300));
+  const m=chat.querySelectorAll('.msg.ai:not(.err)'),last=m[m.length-1];
+  nkSpeak(last?last.innerText:'',()=>{if(nk.always&&!nkStopped)nkListen(false);});
+}
+window.onNikoState=s=>nkState(s);
+window.onNikoResult=t=>{
+  nkState('think');
+  if(nkManual){nkSend(t);return;}
+  const low=t.toLowerCase(),wk=(nk.wake||'niko').toLowerCase(),i=low.indexOf(wk);
+  if(i<0){nkState('');setTimeout(()=>nkListen(false),400);return;}
+  const cmd=t.slice(i+wk.length).replace(/^[\s,.:]+/,'').trim();
+  if(cmd)nkSend(cmd);
+  else nkSpeak('Ya, saya mendengarkan',()=>nkListen(true));
+};
+window.onNikoError=e=>{
+  nkState('');
+  if(e==='9'){alert('Izin mikrofon belum diberikan. Aktifkan di Setelan > Aplikasi > Izin.');return;}
+  if(e==='tidak tersedia'){alert('Mesin suara Google tidak ditemukan. Aktifkan aplikasi Google dan Layanan Suara.');return;}
+  if(nk.always&&!nkStopped)setTimeout(()=>nkListen(false),1500);
+};
+function nkTap(){
+  const c=nkOrb.className;
+  if(c==='listen'||c==='speak'||c==='think')nkStop();else nkListen(true);
+}
+nkOrb.onclick=nkTap;
+document.getElementById('nkMic').onclick=nkTap;
+const nkP=document.getElementById('nkPanel');
+document.getElementById('nkSet').onclick=()=>{nkP.hidden=false;};
+document.getElementById('nkClose').onclick=()=>{nkP.hidden=true;};
+const nkq=id=>document.getElementById(id);
+nkq('nkSpeak').checked=nk.speak;
+nkq('nkAlways').checked=nk.always;
+nkq('nkWake').value=nk.wake;
+nkq('nkLang').value=nk.lang;
+nkq('nkRate').value=nk.rate;
+nkq('nkSpeak').onchange=e=>{nk.speak=e.target.checked;nkSave();};
+nkq('nkAlways').onchange=e=>{nk.always=e.target.checked;nkSave();if(nk.always)nkListen(false);else nkStop();};
+nkq('nkWake').onchange=e=>{nk.wake=(e.target.value||'niko').trim().toLowerCase();nkSave();};
+nkq('nkLang').onchange=e=>{nk.lang=e.target.value;nkSave();};
+nkq('nkRate').oninput=e=>{nk.rate=parseFloat(e.target.value);nkSave();};
+mulaiNiko=function(){nkStopped=false;nkListen(false);};
+hentikanNiko=function(){nkStop();};
+if(nk.always)setTimeout(()=>nkListen(false),2000);
+nkq('nkBg').onclick=()=>{if(!window.NikoNative){alert('Hanya di aplikasi Android');return;}nk.always=false;nkq('nkAlways').checked=false;nkSave();nkStop();NikoNative.startBg();alert('NIKO aktif di latar belakang. Ucapkan: niko, buka TikTok');};
+nkq('nkBgOff').onclick=()=>{try{NikoNative.stopBg();}catch(e){}};
+nkq('nkAcc').onclick=()=>{try{NikoNative.openAccess();}catch(e){}};
+nkq('nkBat').onclick=()=>{try{NikoNative.openBattery();}catch(e){}};
+// ===== AKHIR NIKO NATIVE =====
+
+// ===== HISTORI =====
+let hsCur=null,hsT=null;
+function hsLoad(){try{return JSON.parse(localStorage.getItem('hist')||'[]');}catch(e){return [];}}
+function hsStore(a){try{localStorage.setItem('hist',JSON.stringify(a.slice(0,30)));}catch(e){}}
+function hsSave(){
+  if(!history||!history.length)return;
+  const a=hsLoad();
+  if(!hsCur)hsCur='h'+Date.now();
+  const first=history.find(m=>m.role==='user');
+  const item={id:hsCur,title:((first&&first.text)||'Obrolan').slice(0,40),time:Date.now(),
+    msgs:history.map(m=>({role:m.role,text:m.text||''}))};
+  const i=a.findIndex(x=>x.id===hsCur);
+  if(i>=0)a.splice(i,1);
+  a.unshift(item);
+  hsStore(a);
+}
+new MutationObserver(()=>{clearTimeout(hsT);hsT=setTimeout(hsSave,800);}).observe(chat,{childList:true,subtree:true,characterData:true});
+const hsP=document.getElementById('hsPanel'),hsL=document.getElementById('hsList');
+function hsRender(){
+  hsL.innerHTML='';
+  const a=hsLoad();
+  if(!a.length){hsL.textContent='Belum ada histori.';return;}
+  a.forEach(it=>{
+    const row=document.createElement('div');row.className='hsRow';
+    const b=document.createElement('button');b.className='hsItem';
+    const d=new Date(it.time);
+    b.textContent=it.title+' · '+d.toLocaleDateString('id-ID')+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    b.onclick=()=>hsOpen(it.id);
+    const x=document.createElement('button');x.className='hsDel';x.textContent='🗑';
+    x.onclick=()=>{hsStore(hsLoad().filter(z=>z.id!==it.id));if(hsCur===it.id)hsCur=null;hsRender();};
+    row.append(b,x);hsL.append(row);
+  });
+}
+function hsOpen(id){
+  const it=hsLoad().find(z=>z.id===id);
+  if(!it)return;
+  history=it.msgs.map(m=>({role:m.role,text:m.text}));
+  hsCur=id;
+  chat.innerHTML='';
+  it.msgs.forEach(m=>add(m.role==='user'?'user':'ai',m.text));
+  try{setImage(null);}catch(e){}
+  hsP.hidden=true;
+}
+document.getElementById('hsBtn').onclick=()=>{hsRender();hsP.hidden=false;};
+document.getElementById('hsClose').onclick=()=>{hsP.hidden=true;};
+document.getElementById('hsNew').onclick=()=>{
+  history=[];hsCur=null;
+  try{setImage(null);}catch(e){}
+  showEmpty();hsP.hidden=true;
+};
+document.getElementById('hsAll').onclick=()=>{
+  if(confirm('Hapus semua histori?')){hsStore([]);hsCur=null;hsRender();}
+};
+document.getElementById('clear').addEventListener('click',()=>{hsCur=null;});
+// ===== AKHIR HISTORI =====
+
+
+
+
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function fmt(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>")}
+
+function add(role, text, img, cls){
+  const e = chat.querySelector(".empty"); if (e) e.remove();
+  const d = document.createElement("div");
+  d.className = "msg " + (role === "user" ? "me" : "ai") + (cls ? " " + cls : "");
+  if (img){ const i = document.createElement("img"); i.src = img; d.appendChild(i); }
+  const t = document.createElement("span"); t.innerHTML = fmt(text || ""); d.appendChild(t);
+  chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d;
+}
+
+function setImage(dataUrl){
+  image = dataUrl; pimg.src = dataUrl; preview.style.display = dataUrl ? "flex" : "none";
+}
+
+function shrink(src){
+  return new Promise((ok, no) => {
+    const im = new Image();
+    im.onload = () => {
+      const m = 1600, k = Math.min(1, m / Math.max(im.width, im.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      ok(c.toDataURL("image/jpeg", 0.85));
+    };
+    im.onerror = () => no(new Error("Gambar tidak bisa dibaca"));
+    im.src = src;
+  });
+}
+
+document.getElementById("cam").onclick = () => file.click();
+file.onchange = () => {
+  const f = file.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = async () => { try { setImage(await shrink(r.result)); } catch(e){ add("ai", e.message, null, "err"); } };
+  r.readAsDataURL(f); file.value = "";
+};
+document.getElementById("prm").onclick = () => setImage(null);
+
+document.getElementById("scr").onclick = async () => {
+  Android.startScreenCapture();
+  };
+
+function pesanJelas(m){ const k=String(m).toLowerCase();
+  if(k.includes("failed to fetch")||k.includes("network")) return "Tidak ada koneksi internet. Periksa data atau Wi-Fi.";
+  if(k.includes("api key not valid")||k.includes("api_key_invalid")) return "API key salah atau tidak berlaku. Periksa tombol Kunci.";
+  if(k.includes("quota")||k.includes("exhausted")) return "Kuota Gemini habis atau terlalu sering. Tunggu sebentar lalu coba lagi.";
+  if(k.includes("overloaded")||k.includes("high demand")) return "Server Gemini sedang sibuk. Coba lagi sebentar.";
+  return m; }
+
+async function kirim(){
+  if (busy) return;
+  const text = txt.value.trim();
+  if (!text && !image) return;
+  busy = true; send.disabled = true;
+  const img = image;
+  add("user", text, img);
+  history.push({role:"user", text, image: img});
+  txt.value = ""; txt.style.height = "auto"; setImage(null);
+  const wait = add("ai", "", null);
+  wait.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
+  try{
+    let key = getKey() || askKey();
+    if (!key) throw new Error("API Key belum diisi (tekan tombol Kunci)");
+    const contents = [];
+    history.forEach((m,i)=>{
+      const parts = [{text: m.text || (m.image ? "Jelaskan gambar ini." : "")}];
+      if (m.role==="user" && m.image && i===history.length-1)
+        parts.push({inline_data:{mime_type:"image/jpeg", data:m.image.split(",")[1]}});
+      contents.push({role: m.role==="assistant" ? "model" : "user", parts});
+    });
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-goog-api-key":key},
+      body: JSON.stringify({
+        systemInstruction:{parts:[{text:"Namamu "+getNama()+". Kamu asisten AI yang menjawab dalam bahasa Indonesia dengan jelas dan ringkas. Kalau pertanyaannya soal matematika, fisika, kimia, atau pelajaran lain, jangan hanya beri jawaban akhir: jelaskan cara pengerjaannya langkah demi langkah dengan bahasa sederhana, tulis rumus yang dipakai, lalu tutup dengan jawaban akhir yang jelas."}]},
+        contents
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error((d.error && d.error.message) || "Terjadi kesalahan");
+    const cand = d.candidates && d.candidates[0];
+    const reply = (cand && cand.content && cand.content.parts) ? cand.content.parts.map(p=>p.text||"").join("") : "";
+    if (!reply) throw new Error("Tidak ada jawaban (mungkin diblokir filter). Coba pertanyaan lain.");
+    wait.innerHTML = fmt(reply);
+    history.push({role:"assistant", text:reply});
+  }catch(e){
+    wait.classList.add("err");
+    wait.textContent = "Gagal: " + pesanJelas(e.message);
+    history.pop();
+  }
+  busy = false; send.disabled = false; chat.scrollTop = chat.scrollHeight;
+}
+
+send.onclick = kirim;
+txt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !/Mobi|Android/i.test(navigator.userAgent)){ e.preventDefault(); kirim(); } });
+txt.addEventListener("input", () => { txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight,120) + "px"; });
+document.getElementById("key").onclick = () => askKey();
+{ const k=document.getElementById("key"), b=k.cloneNode(false); b.id="ukuranbola"; b.textContent="Ukuran"; k.after(b); k.parentElement.style.flexWrap="wrap";
+b.onclick=()=>{ const n=prompt("Ukuran bola: 1 = Kecil, 2 = Sedang, 3 = Besar","2"); if(!["1","2","3"].includes(n)) return;
+try{Android.saveUkuran(n)}catch(e){} }; }
+{ const k=document.getElementById("key"), b=k.cloneNode(false); b.id="sapaan"; b.textContent="Sapaan"; k.after(b);
+b.onclick=()=>{ let l="45"; try{l=localStorage.getItem("jeda_sapa")||"45"}catch(e){}
+const n=prompt("Jeda sapaan dalam detik (minimal 30, isi 0 untuk mematikan):",l); if(n===null) return; const v=String(Math.max(0,parseInt(n,10)||0));
+try{localStorage.setItem("jeda_sapa",v)}catch(e){} try{Android.saveJeda(v)}catch(e){} }; }
+{ const k=document.getElementById("key"), b=k.cloneNode(false); b.id="namaai"; b.textContent="Nama AI"; k.after(b);
+b.onclick=()=>{ const n=prompt("Nama AI (kosongkan untuk Nino):",getNama()); if(n===null) return; const v=n.trim().slice(0,30);
+try{localStorage.setItem("nama_ai",v)}catch(e){} try{Android.saveName(v)}catch(e){} }; }
+document.getElementById("clear").onclick = () => { history = []; setImage(null); showEmpty(); };
+  document.getElementById("voiceBtn").onclick = function() {
+  if (voiceEnabled) {
+    hentikanNiko();
+    this.textContent = "🎙️";
+  } else {
+    voiceEnabled = true;
+    mulaiNiko();
+    this.textContent = "🔴";
+  }
+};
+</script>
+<script id="skin-patch">
+(function(){try{
+var KEY='aiSkin',S={},T='avatar';
+var SH={circle:['50%',''],round:['28%',''],square:['6%',''],egg:['50% 50% 50% 50%/60% 60% 40% 40%',''],hex:['0','polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%)'],dia:['0','polygon(50% 0,100% 50%,50% 100%,0 50%)'],star:['0','polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)']};
+var SHN={circle:'Bulat',round:'Kotak bulat',square:'Kotak',egg:'Telur',hex:'Segi enam',dia:'Berlian',star:'Bintang'};
+var EM=['AI','🤖','👾','👽','🐱','🦊','🐼','👻','🐲','🚀','🧠','🔮','⭐','😀'];
+var COL=['#3b82f6','#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#8b5cf6','#ec4899','#64748b','#111827'];
+try{S=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){S={}}
+S.avatar=S.avatar||{};S.orb=S.orb||{};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function inSheet(el){return el.closest&&el.closest('#sk-sheet,#sk-btn')}
+function round(el){var r=el.getBoundingClientRect(),b=getComputedStyle(el).borderTopLeftRadius;
+if(r.width<24||r.width>200||Math.abs(r.width-r.height)>4)return false;
+return b.indexOf('%')>-1?parseFloat(b)>=40:parseFloat(b)>=r.width/2-1}
+function paint(el){
+var c=S[el.getAttribute('data-sk')]||{},o={},sh=SH[c.shape],k;
+el.setAttribute('style',el._sk0[0]);el.innerHTML=el._sk0[1];
+if(c.size){o.width=o.height=o['min-width']=o['min-height']=c.size+'px';o.flex='none'}
+if(sh){o['border-radius']=sh[0];o['clip-path']=sh[1]||'none'}
+if(c.color){o['background-color']=c.color;o['background-image']='radial-gradient(circle at 30% 25%,rgba(255,255,255,.35),rgba(255,255,255,0) 60%)'}
+if(c.img){o['background-image']='url("'+c.img+'")';o['background-size']='cover';o['background-position']='center'}
+if(c.size||c.txt!=null||c.img){var w=c.size||parseFloat(getComputedStyle(el).width)||44;
+o.display='flex';o['align-items']='center';o['justify-content']='center';o['line-height']='1';
+o['font-size']=Math.round(w*(/^[A-Za-z0-9 ]*$/.test(c.txt==null?'AI':c.txt)?.38:.55))+'px'}
+for(k in o)el.style.setProperty(k,o[k],'important');
+if(c.img)el.textContent='';else if(c.txt!=null)el.textContent=c.txt}
+function tag(el,t){el.setAttribute('data-sk',t);el._sk0=[el.getAttribute('style')||'',el.innerHTML];paint(el)}
+function scan(){var all=document.querySelectorAll('body *'),i,j,el,p,pos;
+for(i=0;i<all.length;i++){el=all[i];
+if(el.hasAttribute('data-sk')||inSheet(el)||/^(SCRIPT|STYLE|SVG|PATH|INPUT|TEXTAREA|CANVAS|IMG|NOSCRIPT)$/i.test(el.tagName))continue;
+if(el.parentElement&&el.parentElement.closest('[data-sk]'))continue;
+if(el.children.length===0&&el.textContent.trim()==='AI'){p=el;
+for(j=0;j<3&&p&&p!==document.body;j++){if(round(p)&&!p.hasAttribute('data-sk')){tag(p,'avatar');break}p=p.parentElement}continue}
+pos=getComputedStyle(el).position;
+if((pos==='fixed'||pos==='absolute')&&el.textContent.trim().length<3&&round(el))tag(el,'orb')}}
+function repaint(){document.querySelectorAll('[data-sk]').forEach(paint)}
+var css=document.createElement('style');
+css.textContent='#sk-sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(560px,100%);max-height:55vh;overflow:auto;background:#0f1526;color:#e6eaf7;border:1px solid #27314d;border-radius:16px 16px 0 0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));z-index:2147483000;font:14px/1.3 system-ui,sans-serif;display:none;box-shadow:0 -10px 40px rgba(0,0,0,.5);box-sizing:border-box}#sk-sheet h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;align-items:center}#sk-sheet .r{margin:10px 0 4px;color:#8f9bbd;font-size:12px}#sk-sheet .w{display:flex;flex-wrap:wrap;gap:6px}#sk-sheet [data-a]{border:1px solid #27314d;background:#171f36;color:inherit;border-radius:10px;padding:7px 10px;font:inherit;min-width:36px}#sk-sheet [data-a].on{border-color:#6d8cff;background:#22305a}#sk-sheet .c{width:30px;height:30px;padding:0;border-radius:50%;min-width:0}#sk-sheet input[type=range]{width:100%}#sk-sheet input[type=text]{background:#171f36;color:inherit;border:1px solid #27314d;border-radius:10px;padding:7px 10px;width:90px;font:inherit}#sk-sheet input[type=color]{width:36px;height:32px;padding:0;border:0;background:none}';
+document.head.appendChild(css);
+var sh=document.createElement('div');sh.id='sk-sheet';document.body.appendChild(sh);
+var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.style.display='none';document.body.appendChild(fi);
+function cur(){return S[T]}
+function render(){
+if(T==='orb'&&!document.querySelector('[data-sk=orb]'))T='avatar';
+var c=cur(),el=document.querySelector('[data-sk='+T+']'),sz=c.size||(el?Math.round(el.getBoundingClientRect().width):44),h='';
+function on(x){return x?' class="on"':''}
+h+='<h4>Atur tampilan AI<button data-a="close">Tutup</button></h4>';
+if(document.querySelector('[data-sk=orb]'))h+='<div class="w"><button data-a="tab" data-v="avatar"'+on(T==='avatar')+'>Avatar</button><button data-a="tab" data-v="orb"'+on(T==='orb')+'>Bola melayang</button></div>';
+h+='<div class="r">Bentuk</div><div class="w">';
+for(var k in SHN)h+='<button data-a="shape" data-v="'+k+'"'+on(c.shape===k)+'>'+SHN[k]+'</button>';
+h+='</div><div class="r">Ukuran: <span id="sk-sv">'+sz+'</span> px</div><input id="sk-size" type="range" min="24" max="160" value="'+sz+'">';
+h+='<div class="r">Warna</div><div class="w"><button data-a="color" data-v="x"'+on(!c.color)+'>Asli</button>';
+COL.forEach(function(x){h+='<button class="c'+(c.color===x?' on':'')+'" data-a="color" data-v="'+x+'" style="background:'+x+'"></button>'});
+h+='<input id="sk-col" type="color" value="'+(c.color||'#3b82f6')+'"></div>';
+h+='<div class="r">Isi (teks, emoji, atau foto)</div><div class="w"><button data-a="txt" data-v=""'+on(c.txt==='')+'>Kosong</button>';
+EM.forEach(function(x){h+='<button data-a="txt" data-v="'+x+'"'+on(c.txt===x&&!c.img)+'>'+x+'</button>'});
+h+='</div><div class="w" style="margin-top:8px"><input id="sk-txt" type="text" maxlength="4" placeholder="Teks sendiri"><button data-a="photo">Foto sendiri</button>'+(c.img?'<button data-a="noimg">Hapus foto</button>':'')+'</div>';
+h+='<div class="w" style="margin-top:12px"><button data-a="reset">Kembalikan ke asli</button></div>';
+sh.innerHTML=h}
+function commit(){save();repaint();render()}
+sh.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;
+var a=b.getAttribute('data-a'),v=b.getAttribute('data-v'),c=cur();
+if(a==='close'){sh.style.display='none';return}
+if(a==='tab')T=v;else if(a==='shape')c.shape=v;
+else if(a==='color'){if(v==='x')delete c.color;else c.color=v}
+else if(a==='txt'){c.txt=v;delete c.img}
+else if(a==='noimg')delete c.img;
+else if(a==='reset')S[T]={};
+else if(a==='photo'){fi.click();return}
+commit()});
+sh.addEventListener('input',function(e){var t=e.target,c=cur();
+if(t.id==='sk-size'){c.size=+t.value;document.getElementById('sk-sv').textContent=t.value}
+else if(t.id==='sk-col'){c.color=t.value}
+else if(t.id==='sk-txt'){c.txt=t.value;delete c.img}else return;
+save();repaint()});
+fi.onchange=function(){var f=fi.files&&fi.files[0];if(!f)return;var r=new FileReader();
+r.onload=function(){var im=new Image();im.onload=function(){var cv=document.createElement('canvas');cv.width=cv.height=160;
+var x=cv.getContext('2d'),s=Math.min(im.width,im.height);
+x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,160,160);
+cur().img=cv.toDataURL('image/jpeg',.85);delete cur().txt;commit()};im.src=r.result};
+r.readAsDataURL(f);fi.value=''};
+function show(){render();sh.style.display='block'}
+var b=document.createElement('button');b.id='sk-btn';b.type='button';b.textContent='Skin';
+var hp=[].slice.call(document.querySelectorAll('button')).filter(function(x){return x.textContent.trim()==='Hapus'})[0];
+if(hp&&hp.parentNode){b.className=hp.className;hp.parentNode.insertBefore(b,hp)}
+else b.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;padding:6px 10px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7';
+if(!b.parentNode)document.body.appendChild(b);
+b.addEventListener('click',function(){T='avatar';show()});
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-sk="avatar"]');if(a&&!inSheet(a)){T='avatar';show()}});
+var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,400)}).observe(document.body,{childList:true,subtree:true});
+scan();setTimeout(scan,700);setTimeout(scan,2000);
+}catch(err){console.log('skin-patch error',err)}})();
+</script>
+<script id="mode-patch">
+(function(){
+var M=[
+["chat","AI Chat",""],
+["soal","Pemecah Soal","Mode Pemecah Soal: selesaikan soal langkah demi langkah, tulis rumus yang dipakai, lalu beri jawaban akhir yang jelas."],
+["prog","Programmer","Mode Programmer: bantu menulis, menjelaskan, dan memperbaiki kode. Beri contoh kode dalam blok kode dan jelaskan singkat cara kerjanya."],
+["trans","Terjemahan","Mode Terjemahan: terjemahkan teks pengguna. Jika teks berbahasa Indonesia, terjemahkan ke Inggris. Jika bahasa lain, terjemahkan ke Indonesia. Beri hasil terjemahan saja tanpa penjelasan tambahan kecuali diminta."]
+];
+var cur="chat";
+try{cur=localStorage.getItem("ai-mode")||"chat";}catch(e){}
+function prompt(){for(var i=0;i<M.length;i++)if(M[i][0]===cur)return M[i][2];return "";}
+var of=window.fetch;
+window.fetch=function(u,o){
+try{
+var p=prompt();
+if(p&&typeof u==="string"&&u.indexOf("generativelanguage")>-1&&o&&typeof o.body==="string"){
+var b=JSON.parse(o.body);
+var si=b.systemInstruction||b.system_instruction;
+if(si&&si.parts&&si.parts[0]){si.parts[0].text+=" "+p;o.body=JSON.stringify(b);}
+}
+}catch(e){}
+return of.call(this,u,o);
+};
+function build(){
+var t=document.getElementById("txt");
+if(!t||document.getElementById("mode-bar"))return;
+var host=t.parentNode;
+if(!host||!host.parentNode)return;
+var bar=document.createElement("div");
+bar.id="mode-bar";
+bar.style.cssText="display:flex;gap:6px;overflow-x:auto;padding:6px 8px";
+function paint(){
+for(var i=0;i<bar.children.length;i++){
+var on=bar.children[i].getAttribute("data-m")===cur;
+bar.children[i].style.background=on?"#3b82f6":"rgba(127,127,127,.18)";
+bar.children[i].style.color=on?"#fff":"inherit";
+}
+}
+M.forEach(function(m){
+var b=document.createElement("button");
+b.textContent=m[1];
+b.setAttribute("data-m",m[0]);
+b.style.cssText="border:1px solid rgba(127,127,127,.35);border-radius:16px;padding:6px 12px;font-size:13px;white-space:nowrap;flex:none";
+b.onclick=function(){cur=m[0];try{localStorage.setItem("ai-mode",cur);}catch(e){}paint();};
+bar.appendChild(b);
+});
+host.parentNode.insertBefore(bar,host);
+paint();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",build);else build();
+})();
+</script>
+<script id="robot-patch">
+(function(){
+var KEY="ai-robot",C={eye:"bulat",ant:1,cheek:1};
+try{var sv=JSON.parse(localStorage.getItem(KEY));if(sv)for(var k in sv)C[k]=sv[k];}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(C));}catch(e){}}
+var css=document.createElement("style");
+css.textContent=".rb .ms,.rb .mf,.rb .mo,.rb .zz{display:none}"+
+".rb[data-st=happy] .ms,.rb[data-st=think] .mf,.rb[data-st=sleep] .mf{display:inline}"+
+".rb[data-st=talk] .mo,.rb[data-st=wow] .mo{display:inline}.rb[data-st=sleep] .zz{display:inline}"+
+".rb .mo,.rb .eye,.rb .an{transform-box:fill-box;transform-origin:center}.rb .an{transform-origin:50% 100%}"+
+".rb .eye{transition:transform .12s}.rb.bl .eye,.rb[data-st=sleep] .eye{transform:scaleY(.12)}"+
+".rb[data-st=wow] .eye{transform:scale(1.25)}.rb[data-st=talk] .mo{animation:rbt .35s infinite alternate}"+
+"@keyframes rbt{from{transform:scaleY(.25)}to{transform:scaleY(1)}}"+
+".rb.wg .an{animation:rbw .5s}@keyframes rbw{0%,100%{transform:rotate(0)}25%{transform:rotate(-18deg)}75%{transform:rotate(18deg)}}"+
+"#rb-pop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;background:#111827;color:#fff;border:1px solid #334155;border-radius:16px;padding:14px;font:14px sans-serif;min-width:230px}"+
+"#rb-pop div{margin:8px 0}#rb-pop button{background:#1e293b;color:#fff;border:1px solid #475569;border-radius:14px;padding:6px 12px;margin:2px;font-size:13px}#rb-pop button.on{background:#3b82f6;border-color:#3b82f6}";
+document.head.appendChild(css);
+function eye(cx,cy){
+var s=C.eye==="oval"?'<ellipse cx="'+cx+'" cy="'+cy+'" rx="8" ry="12" fill="#fff"/>':
+C.eye==="kotak"?'<rect x="'+(cx-9)+'" y="'+(cy-9)+'" width="18" height="18" rx="5" fill="#fff"/>':
+'<circle cx="'+cx+'" cy="'+cy+'" r="10" fill="#fff"/>';
+return '<g class="eye">'+s+'<circle class="pp" cx="'+cx+'" cy="'+cy+'" r="5" fill="#0f172a"/></g>';
+}
+function svg(){
+return '<svg class="rb" data-st="'+st+'" viewBox="0 0 100 100" style="display:block;width:100%;aspect-ratio:1;height:auto;overflow:visible">'+
+(C.ant?'<g class="an"><line x1="50" y1="8" x2="50" y2="-6" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="-11" r="6" fill="#ef4444"/></g>':'')+
+(C.cheek?'<circle cx="23" cy="62" r="5" fill="#fb7185" opacity=".5"/><circle cx="77" cy="62" r="5" fill="#fb7185" opacity=".5"/>':'')+
+eye(35,46)+eye(65,46)+
+'<path class="ms" d="M38 66Q50 78 62 66" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'+
+'<path class="mf" d="M42 70L58 70" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'+
+'<ellipse class="mo" cx="50" cy="70" rx="8" ry="7" fill="#0f172a"/>'+
+'<text class="zz" x="74" y="24" font-size="18" fill="#fff" font-family="sans-serif">z</text></svg>';
+}
+var st="happy",lock=0,busy=0,last=Date.now();
+function bots(){return document.querySelectorAll("[data-rb]");}
+function set(s){st=s;var a=document.querySelectorAll("svg.rb");for(var i=0;i<a.length;i++)a[i].setAttribute("data-st",s);look(null);}
+function base(){return busy>0?"think":(Date.now()-last>45000?"sleep":"happy");}
+function show(s,ms){clearTimeout(lock);set(s);lock=setTimeout(function(){lock=0;set(base());},ms);}
+function wake(){last=Date.now();if(st==="sleep"&&!lock)set("happy");}
+function look(e){
+var a=bots();
+for(var i=0;i<a.length;i++){
+var x=0,y=0;
+if(st==="think"){x=3;y=-4;}
+else if(e&&st!=="sleep"){var r=a[i].getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),d=Math.sqrt(dx*dx+dy*dy)||1,k=Math.min(1,d/(r.width*1.5))*4;x=dx/d*k;y=dy/d*k;}
+var p=a[i].querySelectorAll(".pp");
+for(var j=0;j<p.length;j++)p[j].setAttribute("transform","translate("+x+" "+y+")");
+}
+}
+function scan(){
+var a=document.querySelectorAll("div,span,b");
+for(var i=0;i<a.length;i++){
+var el=a[i];
+if(el.children.length||el.textContent.trim()!=="AI"||el.closest("#sk-sheet,#sk-btn,#rb-pop"))continue;
+var r=el.getBoundingClientRect();
+if(r.width<24||r.width>200||Math.abs(r.width-r.height)>4)continue;
+el.innerHTML=svg();el.setAttribute("data-rb","1");el.style.overflow="visible";
+}
+}
+function redraw(){var a=bots();for(var i=0;i<a.length;i++)a[i].innerHTML=svg();}
+new MutationObserver(function(){scan();}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+setInterval(scan,1500);scan();
+var of=window.fetch;
+window.fetch=function(u,o){
+var g=typeof u==="string"&&u.indexOf("generativelanguage")>-1;
+if(!g)return of.apply(this,arguments);
+busy++;last=Date.now();clearTimeout(lock);lock=0;set("think");
+var p=of.apply(this,arguments);
+p.then(function(){busy--;show("talk",3000);},function(){busy--;show("wow",1500);});
+return p;
+};
+var tm=0,lp=0;
+document.addEventListener("pointerdown",function(e){
+wake();look(e);
+var el=e.target.closest&&e.target.closest("[data-rb]");
+if(!el)return;
+lp=0;clearTimeout(tm);
+tm=setTimeout(function(){lp=1;pop();},600);
+},true);
+document.addEventListener("pointerup",function(e){
+clearTimeout(tm);
+var el=e.target.closest&&e.target.closest("[data-rb]");
+if(el&&!lp){var s=el.querySelector("svg.rb");if(s){s.classList.add("wg");setTimeout(function(){s.classList.remove("wg");},500);}show("wow",900);}
+},true);
+document.addEventListener("pointermove",function(e){clearTimeout(tm);look(e);},true);
+document.addEventListener("keydown",wake,true);
+document.addEventListener("input",wake,true);
+setInterval(function(){if(!lock&&!busy)set(base());},5000);
+(function blink(){
+setTimeout(function(){
+var a=document.querySelectorAll("svg.rb");
+for(var i=0;i<a.length;i++)a[i].classList.add("bl");
+setTimeout(function(){for(var i=0;i<a.length;i++)a[i].classList.remove("bl");},130);
+blink();
+},2500+Math.random()*3000);
+})();
+function pop(){
+var old=document.getElementById("rb-pop");if(old)old.remove();
+var d=document.createElement("div");d.id="rb-pop";
+function row(t,key,opts){
+var r=document.createElement("div");r.textContent=t+": ";
+opts.forEach(function(o){
+var b=document.createElement("button");b.textContent=o[1];
+if(String(C[key])===String(o[0]))b.className="on";
+b.onclick=function(){C[key]=o[0];save();redraw();pop();};
+r.appendChild(b);
+});
+d.appendChild(r);
+}
+var h=document.createElement("b");h.textContent="Kustom robot";d.appendChild(h);
+row("Mata","eye",[["bulat","Bulat"],["oval","Oval"],["kotak","Kotak"]]);
+row("Antena","ant",[[1,"Ada"],[0,"Tanpa"]]);
+row("Pipi","cheek",[[1,"Ada"],[0,"Tanpa"]]);
+var c=document.createElement("button");c.textContent="Tutup";c.onclick=function(){d.remove();};
+d.appendChild(c);
+document.body.appendChild(d);
+}
+})();
+</script>
+<script src="niko-gambar.js"></script>
+
+<script>
+(function(){
+var BR=window.NikoSimpan;
+var SH=['Bulat','Kotak bulat','Kotak','Telur','Segi enam','Berlian','Bintang','Robot 3D'];
+var CL=['#3b82f6','#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#8b5cf6','#ec4899','#64748b','#111827'];
+var EM=['','AI','🤖','👾','👽','🐱','🦊','🐼','👻','🐲','🚀','🧠','🔮','⭐','😀'];
+var st={shape:0,color:'',isi:''};
+try{st=JSON.parse(localStorage.getItem('kostumAI')||'')||st}catch(e){}
+var ov=null,pn=null;
+function save(){
+try{localStorage.setItem('kostumAI',JSON.stringify(st))}catch(e){}
+try{BR.kostum(st.shape,st.color?parseInt(st.color.slice(1),16):0,st.isi||'')}catch(e){}
+}
+function btn(t,on,sel,extra){
+var b=document.createElement('button');b.type='button';b.textContent=t;
+b.style.cssText='margin:3px;padding:8px 12px;border-radius:10px;border:2px solid '+(sel?'#3b82f6':'#27314d')+';background:#171f36;color:#e6eaf7;font-size:14px;'+(extra||'');
+b.onclick=on;return b;
+}
+function row(t){var d=document.createElement('div');d.style.cssText='margin:12px 0 4px;color:#8b95b3;font-size:13px';d.textContent=t;return d;}
+function render(){
+pn.innerHTML='';
+var h=document.createElement('div');h.textContent='Kostum bola AI';h.style.cssText='font-size:17px;font-weight:600;color:#e6eaf7';pn.appendChild(h);
+pn.appendChild(row('Bentuk'));
+SH.forEach(function(n,i){pn.appendChild(btn(n,function(){st.shape=i;save();render()},st.shape===i))});
+pn.appendChild(row('Warna'));
+pn.appendChild(btn('Asli',function(){st.color='';save();render()},!st.color));
+CL.forEach(function(c){pn.appendChild(btn('',function(){st.color=c;save();render()},st.color===c,'width:42px;height:42px;border-radius:50%;background:'+c+';'))});
+pn.appendChild(row('Isi bola (emoji atau teks)'));
+EM.forEach(function(e){pn.appendChild(btn(e||'Kosong',function(){st.isi=e;save();render()},st.isi===e))});
+var inp=document.createElement('input');inp.type='text';inp.maxLength=6;inp.placeholder='Teks sendiri';
+inp.value=EM.indexOf(st.isi)>=0?'':st.isi;
+inp.style.cssText='display:block;margin:8px 3px;padding:8px 12px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7;font-size:14px;width:60%';
+inp.oninput=function(){st.isi=inp.value;save()};
+pn.appendChild(inp);
+pn.appendChild(btn('Tutup',function(){ov.remove();ov=null},false,'display:block;margin:14px auto 0;'));
+}
+function buka(){
+if(ov){ov.remove();ov=null}
+ov=document.createElement('div');
+ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483646;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center';
+pn=document.createElement('div');
+pn.style.cssText='width:92vw;max-width:560px;max-height:80vh;overflow:auto;padding:14px;border-radius:16px;background:#0b1020;border:1px solid #27314d';
+ov.appendChild(pn);document.body.appendChild(ov);render();
+}
+var b=document.createElement('button');b.id='kostum-btn';b.type='button';b.textContent='Kostum';b.onclick=buka;
+var hp=[].slice.call(document.querySelectorAll('button')).filter(function(x){return x.textContent.trim()==='Hapus'})[0];
+if(hp&&hp.parentNode){b.className=hp.className;hp.parentNode.insertBefore(b,hp)}
+else b.style.cssText='position:fixed;top:48px;right:8px;z-index:2147483000;padding:6px 10px;border-radius:10px;border:1px solid #27314d;background:#171f36;color:#e6eaf7';
+})();
+</script>
+<style id="ui-rapi">
+header{flex-wrap:nowrap!important;justify-content:space-between}
+header b{white-space:nowrap}
+header #menuBtn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:8px 14px;font:600 14px system-ui}
+#menuAtur{position:fixed;right:12px;top:64px;width:min(300px,calc(100vw - 24px));max-height:70vh;overflow:auto;z-index:19;display:flex;flex-direction:column;gap:6px;padding:10px;background:#121a33;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px #000a}
+#menuAtur[hidden]{display:none}
+#menuAtur button{display:block;width:100%;margin:0!important;text-align:left;background:#0b1020!important;border:1px solid var(--line)!important;color:var(--text)!important;border-radius:12px!important;padding:12px 14px!important;font:15px system-ui!important}
+#menuAtur #key::before{content:"\1F511  "}
+#menuAtur #namaai::before{content:"\1F916  "}
+#menuAtur #sapaan::before{content:"\1F4AC  "}
+#menuAtur #ukuranbola::before{content:"\1F4CF  "}
+#menuAtur #sk-btn::before{content:"\2728  "}
+#menuAtur #kostum-btn::before{content:"\1F3A8  "}
+#menuAtur #clear::before{content:"\1F5D1  "}
+#mode-bar{overflow-x:auto;padding:0 0 8px!important}
+#mode-bar button{flex:1 0 auto!important;padding:7px 8px!important;font-size:12px!important}
+#bar #row{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:0!important;align-items:stretch}
+#bar #row>#txt{grid-column:1/6;grid-row:1;width:100%}
+#bar #row>#send{grid-column:6;grid-row:1;margin:0;padding:0;width:100%;height:auto;min-height:44px;font-size:14px}
+#bar #row>.ic{grid-row:2;width:100%;height:54px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;font-size:19px}
+.ic::after{font:10px system-ui;color:var(--mut);margin-top:3px}
+#cam::after{content:"Foto"}#scr::after{content:"Layar"}#nkMic::after{content:"Bicara"}#nkSet::after{content:"Suara"}#hsBtn::after{content:"Riwayat"}#genBtn::after{content:"Gambar"}
+#nkOrb{bottom:200px!important}
+</style>
+<script>
+(function(){
+var h=document.querySelector("header"); if(!h) return;
+var m=document.createElement("div"); m.id="menuAtur"; m.hidden=true;
+var t=document.createElement("button"); t.id="menuBtn"; t.type="button"; t.textContent="\u2630 Menu";
+["key","namaai","sapaan","ukuranbola","sk-btn","kostum-btn","clear"].forEach(function(id){
+var b=document.getElementById(id); if(b) m.appendChild(b); });
+[].slice.call(h.querySelectorAll("button")).forEach(function(b){ m.appendChild(b); });
+h.appendChild(t); document.body.appendChild(m);
+var n={key:"Kunci API",namaai:"Nama AI",sapaan:"Jeda sapaan",ukuranbola:"Ukuran bola","sk-btn":"Tampilan aplikasi","kostum-btn":"Kostum bola",clear:"Hapus obrolan"};
+for(var id in n){ var b=document.getElementById(id); if(b) b.textContent=n[id]; }
+t.addEventListener("click",function(e){ e.stopPropagation(); m.hidden=!m.hidden; });
+m.addEventListener("click",function(e){ if(e.target.closest("button")) m.hidden=true; });
+document.addEventListener("click",function(e){ if(!m.contains(e.target)) m.hidden=true; });
+})();
+</script>
+<style id="kuis-latihan">
+#kuis{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column;padding:16px;gap:12px;overflow:auto}
+#kuis[hidden]{display:none}
+#kuis h3{margin:0;display:flex;justify-content:space-between;align-items:center;font-size:18px}
+#kuis button{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px 14px;font:15px system-ui;text-align:left}
+#kuis button.utama{background:linear-gradient(135deg,var(--a),var(--b));border:0;text-align:center;font-weight:600}
+#kuis button.benar{background:#14532d;border-color:#22c55e;opacity:1}
+#kuis button.salah{background:#5f1d1d;border-color:#ef4444;opacity:1}
+#kuis textarea{flex:none;width:100%;min-height:80px}
+#kuis p{margin:0;white-space:pre-wrap}
+#kuis .redup{color:var(--mut);font-size:13px}
+#menuAtur #kuisBtn::before{content:"\1F4DD  "}
+</style>
+<div id="kuis" hidden></div>
+<script>
+(function(){
+var K=document.getElementById("kuis"), menu=document.getElementById("menuAtur"); if(!menu) return;
+var soal=[], no=0, skor=0, sesi=0;
+function el(tag,teks,kelas){ var e=document.createElement(tag); if(teks!=null) e.textContent=teks; if(kelas) e.className=kelas; K.appendChild(e); return e; }
+function reaksi(a,t){ try{Android.reaksi(a,t)}catch(e){} }
+function kepala(judul){ K.innerHTML=""; var h=el("h3"); var s=document.createElement("span"); s.textContent=judul;
+var x=document.createElement("button"); x.textContent="Tutup"; x.onclick=function(){ sesi++; K.hidden=true; }; h.append(s,x); }
+function layarTerakhir(){ try{ var a=JSON.parse(Android.ambilRiwayat()||"[]"); return a.length?String(a[0].t||""):""; }catch(e){ return ""; } }
+function awal(pesan){
+kepala("Kuis latihan"); K.hidden=false;
+if(pesan) el("p",pesan,"err");
+el("p","Nino membuat 5 soal baru untuk latihan.","redup");
+var bahan=layarTerakhir();
+if(bahan){ var d=el("button","Buat dari soal layar terakhir","utama"); d.onclick=function(){ buat(bahan); };
+el("p",bahan.slice(0,160)+(bahan.length>160?"...":""),"redup"); }
+else el("p","Belum ada soal dari layar. Ketuk bola di layar berisi soal, atau tulis topik di bawah.","redup");
+var t=el("textarea"); t.placeholder="Atau tulis topik, misalnya: pecahan kelas 5";
+var b=el("button","Buat dari topik","utama"); b.onclick=function(){ if(t.value.trim()) buat("Topik: "+t.value.trim()); };
+}
+async function buat(bahan){
+var ini=++sesi; kepala("Kuis latihan"); el("p","Nino sedang membuat soal...","redup"); reaksi("celingak","Aku siapkan soalnya, ya!");
+try{
+var key=getKey()||askKey(); if(!key) throw new Error("API Key belum diisi (Menu, Kunci API)");
+var perintah="Buat 5 soal latihan pilihan ganda BARU dalam bahasa Indonesia yang setingkat dan setopik dengan bahan di bawah. Ubah angka atau konteksnya, jangan menyalin soal aslinya. Pastikan hanya satu pilihan yang benar. Balas HANYA JSON array berbentuk [{\"soal\":\"...\",\"pilihan\":[\"...\",\"...\",\"...\",\"...\"],\"benar\":0,\"penjelasan\":\"...\"}] dengan benar berupa nomor pilihan 0 sampai 3. Tulis rumus dengan simbol biasa.\n\nBahan:\n"+bahan.slice(0,4000);
+var r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent",{method:"POST",
+headers:{"Content-Type":"application/json","x-goog-api-key":key},
+body:JSON.stringify({contents:[{role:"user",parts:[{text:perintah}]}],generationConfig:{responseMimeType:"application/json"}})});
+var d=await r.json(); if(!r.ok) throw new Error((d.error&&d.error.message)||"Terjadi kesalahan");
+var teks=d.candidates[0].content.parts.map(function(p){return p.text||""}).join("");
+var data; try{ data=JSON.parse(teks.replace(/^\s*```(json)?|```\s*$/g,"")); }catch(e){ throw new Error("Format soal tidak terbaca. Coba lagi."); }
+data=(Array.isArray(data)?data:[]).filter(function(q){ return q&&q.soal&&Array.isArray(q.pilihan)&&q.pilihan.length===4&&[0,1,2,3].indexOf(q.benar)>=0; });
+if(!data.length) throw new Error("Soal tidak lengkap. Coba lagi.");
+if(ini!==sesi) return;
+soal=data; no=0; skor=0; tampil();
+}catch(e){ if(ini===sesi){ awal("Gagal: "+pesanJelas(e.message)); } }
+}
+function tampil(){
+var q=soal[no]; kepala("Soal "+(no+1)+"/"+soal.length+"  \u00b7  Skor "+skor); el("p",q.soal);
+var urut=[0,1,2,3]; for(var i=3;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), x=urut[i]; urut[i]=urut[j]; urut[j]=x; }
+var tombol=urut.map(function(asli,i){
+var teks=String(q.pilihan[asli]).replace(/^\s*[A-Da-d][.)]\s+/,"");
+var b=el("button","ABCD"[i]+".  "+teks); b.onclick=function(){ jawab(asli,b); }; b.dataset.asli=asli; return b; });
+var d=el("button","Demo AI Jawab","utama"); d.onclick=function(){ d.disabled=true; var i=urut.indexOf(Number(q.benar)); if(i>-1) tombol[i].click(); };
+function jawab(pilih,b){
+var tepat=pilih===q.benar; if(tepat) skor++;
+tombol.forEach(function(t){ t.disabled=true; if(Number(t.dataset.asli)===q.benar) t.className="benar"; });
+if(!tepat) b.className="salah";
+K.querySelector("h3 span").textContent="Soal "+(no+1)+"/"+soal.length+"  \u00b7  Skor "+skor;
+reaksi(tepat?"lompat":"celingak", tepat?"Benar! Hebat!":"Belum tepat, ayo coba lagi!");
+el("p",(tepat?"Benar. ":"Belum tepat. ")+(q.penjelasan||""));
+var l=el("button",no+1<soal.length?"Lanjut":"Lihat hasil","utama");
+l.onclick=function(){ no++; if(no<soal.length) tampil(); else hasil(); }; l.scrollIntoView({block:"nearest"});
+}
+}
+function hasil(){
+kepala("Hasil kuis"); el("p","Skor kamu: "+skor+" dari "+soal.length);
+reaksi(skor*2>=soal.length?"menari":"lambai", skor===soal.length?"Sempurna! Keren!":skor*2>=soal.length?"Bagus, terus berlatih!":"Semangat, pasti bisa!");
+el("button","Latihan lagi","utama").onclick=function(){ awal(); };
+}
+var tb=document.createElement("button"); tb.id="kuisBtn"; tb.type="button"; tb.textContent="Kuis latihan";
+tb.onclick=function(){ awal(); }; menu.insertBefore(tb,menu.firstChild);
+})();
+</script>
+<script src="niko-engine/auto-solver.js"></script>
+<script src="niko-engine/ui.js"></script>
+</body>
+</html>

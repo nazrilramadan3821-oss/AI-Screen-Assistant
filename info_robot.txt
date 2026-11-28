@@ -1,0 +1,72 @@
+]633;E;echo "== robot3d dipakai di mana ==";cd726e78-6d80-4107-b6bf-79783df3cef3]633;C== robot3d dipakai di mana ==
+java/com/nazril/asisten/RobotBodyView.java.backup2:164:        web.loadUrl("file:///android_asset/robot3d.html");
+java/com/nazril/asisten/RobotBodyView.java:165:        web.loadUrl("file:///android_asset/robot3d.html");
+java/com/nazril/asisten/RobotBodyView.java.backup:135:        web.loadUrl("file:///android_asset/robot3d.html");
+== fungsi di file robot ==
+18:renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+29:function warna(c){var k=new THREE.Color(c);if(parseInt(THREE.REVISION,10)<152)k.convertSRGBToLinear();return k;}
+30:function mat(c,m,r){return new THREE.MeshStandardMaterial({color:warna(c),metalness:m,roughness:r});}
+31:function lampu(c){return new THREE.MeshBasicMaterial({color:warna(c),toneMapped:false,side:THREE.DoubleSide});}
+35:function add(p,geo,m,x,y,z){var o=new THREE.Mesh(geo,m);o.position.set(x,y,z);p.add(o);return o;}
+37:function ball(p,x,y,z,sx,sy,sz,m){var o=add(p,bola,m,x,y,z);o.scale.set(sx,sy,sz);return o;}
+38:function ring(p,x,y,z,r,t,m,arc){return add(p,new THREE.TorusGeometry(r,t,10,48,arc||Math.PI*2),m,x,y,z);}
+40:function limb(p,a,b,r1,r2,m){
+61:function tempel(o,x,y,jarak){
+67:function mata(x){var g=new THREE.Group();ring(g,0,0,0,.23,.065,glow,Math.PI);
+144:function poke(){last=Date.now();act=0;actEnd=0;}function setAksi(n,d){var t0=Date.now();last=0;act=n;actStart=t0;actEnd=t0+d;}
+145:function pick(now){var n;do{n=Math.floor(Math.random()*14);}while(n==act);
+148:function frame(){
+187:addEventListener('resize',function(){W=innerWidth;H=innerHeight;renderer.setSize(W,H,false);camera.aspect=W/H;camera.updateProjectionMatrix();});
+197:window.robotBicara=function(teks,ms){
+199:clearTimeout(window._gelT);
+200:window._gelT=setTimeout(function(){el.classList.remove("tampil")},ms||5000);
+== kontrol dari AI/Java ==
+java/com/nazril/asisten/AssistService.java:72:      overlay.showBubble();
+java/com/nazril/asisten/AssistService.java:132:    overlay.setBubbleVisible(false);
+java/com/nazril/asisten/AssistService.java:134:    // Beri jeda agar bubble/panel benar-benar hilang dari frame sebelum diambil
+java/com/nazril/asisten/AssistService.java:164:    overlay.setBubbleVisible(true);
+java/com/nazril/asisten/AssistService.java:256:    overlay.setBubbleVisible(true);
+java/com/nazril/asisten/MainActivity.java:3:import android.webkit.JavascriptInterface;
+java/com/nazril/asisten/MainActivity.java:11:import android.webkit.JavascriptInterface;
+java/com/nazril/asisten/MainActivity.java:48:                                                                                                                                        w.addJavascriptInte
+java/com/nazril/asisten/MainActivity.java:81:                                                                                                                                                           
+java/com/nazril/asisten/MainActivity.java:82:        w.addJavascriptInterface(new Object() {
+java/com/nazril/asisten/MainActivity.java:83:            @android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:88:@android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:130:        w.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+java/com/nazril/asisten/MainActivity.java:134:        @JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:141:        @JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:143:        @JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:145:        @JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:150:            w.post(() -> w.evaluateJavascript("try{window." + s + "}catch(e){}", null));
+java/com/nazril/asisten/MainActivity.java:152:        @JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:186:        @JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:193:                                                                                                                                                          
+java/com/nazril/asisten/MainActivity.java:202:@android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:206:@android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:210:@android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:214:@android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:218:@android.webkit.JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:222:@JavascriptInterface
+java/com/nazril/asisten/MainActivity.java:250:                                                                                                                                                          
+java/com/nazril/asisten/OverlayController.java:29:  private View bubble; private View panel;
+java/com/nazril/asisten/OverlayController.java:43:  public void showBubble() {
+java/com/nazril/asisten/OverlayController.java:44:    if (bubble != null) return;
+java/com/nazril/asisten/OverlayController.java:113:    bubble = t;
+java/com/nazril/asisten/OverlayController.java:114:    wm.addView(bubble, lp);
+java/com/nazril/asisten/OverlayController.java:119:  public void setBubbleVisible(boolean visible) {
+java/com/nazril/asisten/OverlayController.java:120:    if (bubble != null) {
+java/com/nazril/asisten/OverlayController.java:122:bubble.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+java/com/nazril/asisten/OverlayController.java:150:if (gelembung != tv || bubble == null) return;
+java/com/nazril/asisten/OverlayController.java:152:WindowManager.LayoutParams bl = (WindowManager.LayoutParams) bubble.getLayoutParams();
+java/com/nazril/asisten/OverlayController.java:176:if (bubble == null) return;
+java/com/nazril/asisten/OverlayController.java:179:if (jedaSapaan() > 0 && bubble.getVisibility() == View.VISIBLE && !panelBuka && pm.isInteractive() && android.os.SystemClock.uptimeMillis() - terakhi
+java/com/nazril/asisten/OverlayController.java:305:if (teks == null || teks.trim().isEmpty() || bubble == null) return;
+java/com/nazril/asisten/OverlayController.java:314:WindowManager.LayoutParams bl = (WindowManager.LayoutParams) bubble.getLayoutParams();
+java/com/nazril/asisten/OverlayController.java:403:    if (bubble != null) {
+java/com/nazril/asisten/OverlayController.java:405:        wm.removeView(bubble);
+java/com/nazril/asisten/OverlayController.java:408:      bubble = null;
+java/com/nazril/asisten/RobotBodyView.java:107:if (td && web != null) web.evaluateJavascript("try{setAksi(" + n + "," + dur + ")}catch(e){}", null);
+java/com/nazril/asisten/RobotBodyView.java:113:web.evaluateJavascript("try{robotBicara(" + org.json.JSONObject.quote(teks) + "," + ms + ")}catch(e){}", null);
+java/com/nazril/asisten/RobotBodyView.java:148:        if (web != null && shape == SHAPE3D) web.evaluateJavascript("poke()", null);
+java/com/nazril/asisten/RobotBodyView.java:165:        web.loadUrl("file:///android_asset/robot3d.html");
