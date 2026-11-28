@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "20905349654",
+    "project_id": "niko-asisten",
+    "storage_bucket": "niko-asisten.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:20905349654:android:e0dfa2c1559ac6cc9a5b37",
+        "android_client_info": {
+          "package_name": "com.nazril.asisten"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "20905349654-fc5l7d71chmr6v7aaa998k694v6jt0jd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nazril.asisten",
+            "certificate_hash": "21021ade28ceaf94816356861ce290a62770b2b4"
+          }
+        },
+        {
+          "client_id": "20905349654-kmnsr02lgemc0mamu34r17qc2p81clra.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM7MmBaw0QHupQGUoww2dTobjLowB1o_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "20905349654-kmnsr02lgemc0mamu34r17qc2p81clra.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
