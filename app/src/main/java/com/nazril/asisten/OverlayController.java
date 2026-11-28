@@ -355,7 +355,7 @@ public void showPanel(String text) {
       box.setBackground(g);
       box.setPadding(dp(14), dp(10), dp(14), dp(10));
 
-      resultView = new TextView(ctx) { @Override public void setText(CharSequence t, BufferType bt) { super.setText(rapi(t), BufferType.SPANNABLE); } };
+      resultView = new TextView(ctx) { @Override public void setText(CharSequence t, BufferType bt) { super.setText(t instanceof android.text.Spanned ? t : rapi(t), BufferType.SPANNABLE); } };
       resultView.setTextColor(Color.WHITE);
       resultView.setTextSize(17); resultView.setLineSpacing(dp(4), 1f);
 
@@ -397,7 +397,7 @@ public void showPanel(String text) {
       panel = box;
       wm.addView(panel, lp);
     }
-    resultView.setText(text == null ? "" : text.replace("$", "").replace("\\times", "\u00d7").replace("\\div", "\u00f7"));
+    resultView.setText(JawabanFormatter.format(text));
   }
 
   public void hidePanel() {
