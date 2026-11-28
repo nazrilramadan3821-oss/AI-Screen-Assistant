@@ -79,6 +79,7 @@ public String analyzeScreenshot(Bitmap bmp) throws Exception {
         }
 
         code = c.getResponseCode();
+        Kredit.siap(ctx); Kredit.catat(code);
         InputStream is = code < 400 ? c.getInputStream() : c.getErrorStream();
         txt = read(is);
       } finally {

@@ -199,6 +199,7 @@ public class AutoFillService extends AccessibilityService {
         }
 
         int kode = c.getResponseCode();
+        Kredit.siap(this); Kredit.catat(kode);
         InputStream is = kode < 400 ? c.getInputStream() : c.getErrorStream();
         String resp = new Scanner(is, "UTF-8").useDelimiter("\\A").next();
         if (kode >= 400) throw new Exception("AI error " + kode);

@@ -937,5 +937,29 @@ tb.onclick=function(){ awal(); }; menu.insertBefore(tb,menu.firstChild);
   setTimeout(function(){ clearInterval(t); },10000);
 })();
 </script>
+<script>
+(function(){
+var asli=window.fetch;
+window.fetch=function(u,o){
+var janji=asli.apply(this,arguments);
+if(String(u&&u.url||u).indexOf("generativelanguage")>-1) janji.then(function(r){ try{Android.catatKredit(r.status)}catch(e){} },function(){});
+return janji;
+};
+var menu=document.getElementById("menuAtur"); if(!menu) return;
+var b=document.createElement("button"); b.id="kreditBtn"; b.type="button"; b.textContent="\uD83D\uDCB3 Kredit Gemini"; menu.appendChild(b);
+b.onclick=function(){
+var w=document.createElement("div");
+w.style.cssText="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px";
+w.innerHTML='<div style="background:#131a30;color:#fff;border:1px solid #24304f;border-radius:16px;padding:18px;width:100%;max-width:340px;font:15px system-ui"><div id="krIsi" style="white-space:pre-wrap;line-height:1.6"></div><p style="margin:14px 0 6px">Batas permintaan per hari:</p><input id="krBatas" type="number" min="1" style="width:100%;box-sizing:border-box;padding:10px;font-size:16px;border-radius:10px;border:1px solid #24304f"><div style="display:flex;gap:8px;margin-top:12px"><button id="krSimpan" style="flex:1;padding:12px;border-radius:10px;border:0;background:#2563eb;color:#fff">Simpan</button><button id="krTutup" style="flex:1;padding:12px;border-radius:10px;border:0;background:#334155;color:#fff">Tutup</button></div></div>';
+w.onclick=function(e){ e.stopPropagation(); };
+document.body.appendChild(w);
+var t=w.querySelector("#krIsi"), n=w.querySelector("#krBatas");
+function muat(){ try{ var d=JSON.parse(Android.infoKredit()); t.textContent=d.teks; n.value=d.batas; }catch(e){ t.textContent="Kredit hanya bisa dilihat di aplikasi."; } }
+muat();
+w.querySelector("#krSimpan").onclick=function(){ var v=parseInt(n.value,10); if(v>0){ try{Android.aturBatas(v)}catch(e){} muat(); } };
+w.querySelector("#krTutup").onclick=function(){ w.remove(); };
+};
+})();
+</script>
 </body>
 </html>

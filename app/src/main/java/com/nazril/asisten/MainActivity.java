@@ -208,6 +208,12 @@ public void saveJeda(String n) {
 MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit().putString("jeda", n).apply();
 }
 @android.webkit.JavascriptInterface
+public void catatKredit(int kode) { Kredit.siap(MainActivity.this); Kredit.catat(kode); }
+@android.webkit.JavascriptInterface
+public String infoKredit() { Kredit.siap(MainActivity.this); return Kredit.ringkasan(); }
+@android.webkit.JavascriptInterface
+public void aturBatas(int n) { Kredit.siap(MainActivity.this); Kredit.aturBatas(n); }
+@android.webkit.JavascriptInterface
 public void saveUkuran(String n) {
 MainActivity.this.getSharedPreferences("p", android.content.Context.MODE_PRIVATE).edit().putString("ukuran", n).apply();
 }

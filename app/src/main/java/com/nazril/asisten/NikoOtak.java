@@ -31,6 +31,7 @@ public class NikoOtak {
           String per = hh >= 4 && hh < 11 ? "pagi" : hh >= 11 && hh < 15 ? "siang" : hh >= 15 && hh < 18 ? "sore" : "malam";
           String tag = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(new java.util.Date()) + per;
           boolean boleh = !tag.equals(sp.getString("sapa_terakhir", ""));
+          Kredit.siap(ctx);
           JSONObject h = tanya(key, per, boleh);
           t = h.optString("teks", "").trim();
           l = h.optJSONArray("langkah");
@@ -114,6 +115,7 @@ public class NikoOtak {
       c.setRequestProperty("x-app-token", key);
       try (OutputStream os = c.getOutputStream()) { os.write(body.toString().getBytes("UTF-8")); }
       int code = c.getResponseCode();
+      Kredit.catat(code);
       if (code >= 400) throw new Exception("HTTP " + code);
       InputStream is = c.getInputStream();
       ByteArrayOutputStream bo = new ByteArrayOutputStream();
