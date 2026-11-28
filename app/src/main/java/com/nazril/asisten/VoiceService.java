@@ -57,7 +57,9 @@ public class VoiceService extends Service {
         else startForeground(77, n);
     }
 
+    boolean abaikan = false;
     void listen() {
+        abaikan = false;
         if (!running) return;
         try {
             if (sr != null) sr.destroy();
@@ -69,19 +71,33 @@ public class VoiceService extends Service {
                 public void onBufferReceived(byte[] b) {}
                 public void onEndOfSpeech() {}
                 public void onError(int e) {
-                    h.postDelayed(() -> listen(), e == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ? 2500 : 700);
+                        if (abaikan) return;
+                    h.postDelayed(() -> listen(), e == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ? 1500 : 250);
                 }
                 public void onResults(Bundle b) {
+                        if (abaikan) return;
                     ArrayList<String> l = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (l != null) for (String t : l) { if (handle(t)) break; }
-                    h.postDelayed(() -> listen(), 500);
+                    h.postDelayed(() -> listen(), 120);
                 }
-                public void onPartialResults(Bundle b) {}
+                public void onPartialResults(Bundle b) {
+                        try {
+                            ArrayList<String> p = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                            if (p == null || p.isEmpty() || abaikan) return;
+                            String q = p.get(0).toLowerCase(Locale.ROOT).trim();
+                            if (q.split("\\s+").length > 4) return;
+                            if (q.contains("turun") || q.contains("naik") || q.contains("lanjut") || q.contains("next")
+                                || q.contains("balik") || q.equals("stop") || q.equals("cukup")) {
+                                if (handle(q)) { abaikan = true; h.postDelayed(() -> listen(), 150); }
+                            }
+                        } catch (Exception e) { }
+                    }
                 public void onEvent(int t, Bundle b) {}
             });
             Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "id-ID");
+            i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             sr.startListening(i);
         } catch (Exception e) {
             h.postDelayed(() -> listen(), 3000);
@@ -133,12 +149,12 @@ public class VoiceService extends Service {
             int x = s.indexOf(w);
             if (x >= 0) { k = x + w.length(); break; }
         }
-        if (k >= 0) { s = s.substring(k); awakeUntil = now + 30000; }
+        if (k >= 0) { s = s.substring(k); awakeUntil = now + 60000; }
         else if (now > awakeUntil) return false;
         s = s.replaceAll("^[ ,.:!?]+", "").trim();
         if (s.isEmpty()) return k >= 0;
         boolean ok = run(s);
-        if (ok) awakeUntil = System.currentTimeMillis() + 30000;
+        if (ok) awakeUntil = System.currentTimeMillis() + 60000;
         return ok;
     }
 
