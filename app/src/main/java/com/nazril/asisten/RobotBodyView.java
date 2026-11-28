@@ -108,16 +108,22 @@ if (td && web != null) web.evaluateJavascript("try{setAksi(" + n + "," + dur + "
 }
 }
 if (teks != null && !teks.trim().isEmpty() && bicaraBola != null) bicaraBola.accept(teks);
-if (teks != null && !teks.trim().isEmpty() && false) {
+if (teks != null && !teks.trim().isEmpty() && web != null && shape == SHAPE3D) {
 long ms = 3000 + 70L * teks.length();
 web.evaluateJavascript("try{robotBicara(" + org.json.JSONObject.quote(teks) + "," + ms + ")}catch(e){}", null);
 }
+}
+public static void sendiGlobal(org.json.JSONArray l) { if (inst != null) inst.sendi(l); }
+public void sendi(org.json.JSONArray l) {
+if (web == null || shape != SHAPE3D || l == null || l.length() == 0) return;
+web.evaluateJavascript("try{robotLangkah(" + l.toString() + ")}catch(e){}", null);
 }
 public static void aksiAIGlobal(String teks, org.json.JSONArray langkah) {
         if (inst != null) inst.aksiAI(teks, langkah);
     }
 
     public void aksiAI(String teks, org.json.JSONArray langkah) {
+        sendi(langkah);
         aksi(null, teks);
         if (langkah == null || langkah.length() == 0) return;
         animate().cancel();

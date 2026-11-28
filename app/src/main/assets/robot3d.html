@@ -45,26 +45,40 @@ bow:{n:'🙇 Membungkuk',f:'sleep',fn:(t,o)=>{const k=(1-Math.cos(t*1.6))/2;o.rx
 sit:{n:'🧘 Duduk',f:'sleep',fn:(t,o)=>{o.y=-.9;o.Lh=o.Rh=-1.5;o.Lk=o.Rk=.25;o.Lsx=o.Rsx=-.7;o.Lex=o.Rex=-.4;o.Lsz=o.Rsz=.2;o.hz=.05*sn(t*1.5)}},
 surprise:{n:'😮 Terkejut',f:'wow',fn:(t,o)=>{o.y=.06*ab(sn(t*10));o.Lsx=o.Rsx=-1;o.Lsz=o.Rsz=.45;o.Lex=o.Rex=-2.3;o.hx=-.1;o.hz=.05*sn(t*20)}},
 thumbs:{n:'👍 Thumbs Up',f:'wink',fn:(t,o)=>{o.Rsx=-1;o.Rsz=.3;o.Rex=-1.6;o.hz=.1;o.y=.03*sn(t*3)}}};
+POSES.look={n:'celingak',f:'open',fn:(t,o)=>{o.hy=.7*sn(t*1.2);o.hz=.1*sn(t*1.2);o.Lsz=o.Rsz=.2}};
+POSES.stretch={n:'regang',f:'happy',fn:(t,o)=>{o.Lsz=o.Rsz=2.8;o.hx=-.2;o.y=.05+.04*sn(t*2.5)}};
+POSES.spin={n:'putar',f:'happy',fn:(t,o)=>{o.ry=Math.PI*2*Math.min(t/2.2,1);o.Lsz=o.Rsz=1.1;o.y=.1*sn(Math.min(t/2.2,1)*Math.PI)}};
+POSES.nod={n:'angguk',f:'happy',fn:(t,o)=>{o.hx=.35*sn(t*6);o.Lsz=o.Rsz=.2}};
+POSES.run={n:'lari',f:'open',fn:(t,o)=>{const w=sn(t*9);o.Lh=.9*w;o.Rh=-.9*w;o.Lk=Math.max(0,-w)*1.2;o.Rk=Math.max(0,w)*1.2;o.Lsx=-.9*w;o.Rsx=.9*w;o.Lex=o.Rex=-1.2;o.rx=.12;o.y=ab(w)*.1}};
 const TH=[['#1f6dff','#5ff3ff'],['#ff3d5e','#ffd1a0'],['#14b86a','#a6ffd2'],['#9b4dff','#e6c4ff']];
 function setColor(i){const c=TH[(+i||0)%TH.length];blue.color.set(c[0]);glow.color.set(c[1]);rim.color.set(c[0]);gc=c[1];last=''}
 const names=Object.keys(POSES);let cur='wave',T=0,TT=0,speak=0,last='',nx=4;
-function setPose(k,hold){if(POSES[k]){if(k!=cur){cur=k;T=0}nx=TT+(hold||4+Math.random()*3)}}
+function setPose(k,hold){if(POSES[k]){if(k!=cur){cur=k;T=0;P.ry=Math.atan2(Math.sin(P.ry),Math.cos(P.ry))}nx=TT+(hold||4+Math.random()*3)}}
 function randPose(){let k;do{k=names[Math.floor(Math.random()*names.length)]}while(k==cur);setPose(k)}
 window.setPose=setPose;window.setColor=setColor;window.speak=s=>{speak=s||3};
 window.robotBicara=function(teks,ms){speak=(ms||5000)/1000;if(cur=='sit'||cur=='bow'||cur=='surprise')setPose('stand',speak+1);else nx=Math.max(nx,TT+speak)};
 window.poke=function(){setPose('surprise',3)};
-const ACT=['stand','wave','walk','thumbs','dance','bow','jump','sit','surprise','thumbs','bow','dance','walk','wave'];
+const ACT=['stand','dance','wave','dance','look','stretch','spin','sit','jump','dance','nod','run','dance','wave'];
 window.setAksi=function(n,d){setPose(ACT[(n|0)%ACT.length],(d||4000)/1000+1.5)};
 addEventListener('message',e=>{const d=e.data;if(typeof d=='string'){if(POSES[d])setPose(d,8);else if(d=='speak'||d=='talk')speak=3;else if(d=='stop')speak=0}
 else if(d&&typeof d=='object'){if(d.pose)setPose(d.pose,8);if(d.speak)speak=+d.speak||3;if(d.color!=null)setColor(d.color)}});
 
+let GS=null,gi=0,gt=0,fOv=null;const DEG=Math.PI/180,lim=(v,a,b)=>Math.max(a,Math.min(b,+v||0)),FACE={senang:'happy',biasa:'open',kaget:'wow',kedip:'wink',tidur:'sleep'};
+window.robotLangkah=function(a){if(Array.isArray(a)&&a.length){GS=a.slice(0,8);gi=0;gt=0}};
+function gestur(dt,o){if(!GS)return;const s=GS[gi]||{},ms=lim(s.ms||300,150,800)/1000;nx=Math.max(nx,TT+1);
+if('kpl' in s)o.hz=lim(s.kpl,-25,25)*DEG;if('ang' in s)o.hx=lim(s.ang,-25,25)*DEG;
+if('tka' in s)o.Rsz=lim(s.tka,0,170)*DEG;if('tki' in s)o.Lsz=lim(s.tki,0,170)*DEG;
+if('ska' in s)o.Rex=-lim(s.ska,0,120)*DEG;if('ski' in s)o.Lex=-lim(s.ski,0,120)*DEG;
+if('kk' in s)o.Rh=-lim(s.kk,-40,40)*DEG;if('kl' in s)o.Lh=-lim(s.kl,-40,40)*DEG;
+if('tek' in s)o.Lk=o.Rk=lim(s.tek,0,80)*DEG;
+fOv=FACE[s.wajah]||null;gt+=dt;if(gt>=ms){gt=0;gi++;if(gi>=GS.length){GS=null;fOv=null}}}
 const clk=new THREE.Clock();
 (function tick(){requestAnimationFrame(tick);const dt=Math.min(clk.getDelta(),.05);T+=dt;TT+=dt;if(TT>nx)randPose();
-const pd=POSES[cur],o=Object.assign({},D);pd.fn(T,o);let mo=o.mo||0;if(pd.f=='happy')mo=Math.max(mo,.35);if(speak>0){speak-=dt;mo=.15+.85*ab(sn(TT*13))}
+const pd=POSES[cur],o=Object.assign({},D);pd.fn(T,o);gestur(dt,o);const fs=fOv||pd.f;let mo=o.mo||0;if(fs=='happy')mo=Math.max(mo,.35);if(speak>0){speak-=dt;mo=.15+.85*ab(sn(TT*13))}
 const k=1-Math.pow(.0005,dt);for(const key in D)P[key]+=(o[key]-P[key])*k;
 holder.rotation.y=.2;robot.position.y=P.y;robot.rotation.set(P.rx,P.ry,P.rz);head.rotation.set(P.hx,P.hy,P.hz);
 arms[0].sh.rotation.set(P.Lsx,0,-P.Lsz);arms[1].sh.rotation.set(P.Rsx,0,P.Rsz);arms[0].el.rotation.x=P.Lex;arms[1].el.rotation.x=P.Rex;
 legs[0].h.rotation.x=P.Lh;legs[1].h.rotation.x=P.Rh;legs[0].k.rotation.x=P.Lk;legs[1].k.rotation.x=P.Rk;
-const bl=TT%3.3<.14,key=pd.f+bl+Math.round(mo*6)+gc;if(key!=last){last=key;drawFace(pd.f,bl,mo)}
+const bl=TT%3.3<.14,key=fs+bl+Math.round(mo*6)+gc;if(key!=last){last=key;drawFace(fs,bl,mo)}
 const asp=innerWidth/innerHeight;C.position.set(0,1.75,Math.max(6.4,4.9/asp));C.lookAt(0,1.7,0);R.render(S,C)})();
 </script></body></html>
