@@ -115,7 +115,7 @@ public class NikoOtak {
       c.setRequestProperty("x-app-token", key);
       try (OutputStream os = c.getOutputStream()) { os.write(body.toString().getBytes("UTF-8")); }
       int code = c.getResponseCode();
-      Kredit.catat(code);
+      Kredit.catat(MODEL, code);
       if (code >= 400) throw new Exception("HTTP " + code);
       InputStream is = c.getInputStream();
       ByteArrayOutputStream bo = new ByteArrayOutputStream();
