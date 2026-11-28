@@ -115,6 +115,7 @@ ctx.getSharedPreferences("p", 0).registerOnSharedPreferenceChangeListener(ukuran
     bubble = t;
     wm.addView(bubble, lp);
 mulaiSantai();
+RobotBodyView.bicaraGerak = new java.util.function.BiConsumer<String, Integer>() { @Override public void accept(String x, Integer ms) { OverlayController.this.komentarGerak(x, ms); } };
 RobotBodyView.bicaraBola = new java.util.function.Consumer<String>() { @Override public void accept(String x) { OverlayController.this.komentar(x); } };
   }
 
@@ -178,7 +179,7 @@ private final Runnable santai = new Runnable() { @Override public void run() {
 if (bubble == null) return;
 boolean panelBuka = panel != null && panel.isAttachedToWindow() && panel.getVisibility() == View.VISIBLE;
 android.os.PowerManager pm = (android.os.PowerManager) ctx.getSystemService(android.content.Context.POWER_SERVICE);
-if (jedaSapaan() > 0 && bubble.getVisibility() == View.VISIBLE && !panelBuka && pm.isInteractive() && android.os.SystemClock.uptimeMillis() - terakhirBicara > 25000) {
+if (jedaSapaan() > 0 && bubble.getVisibility() == View.VISIBLE && !panelBuka && pm.isInteractive() && android.os.SystemClock.uptimeMillis() - terakhirBicara > 25000 && android.os.SystemClock.uptimeMillis() > istirahatSampai) {
 int i; do { i = acak.nextInt(kataSantai.length); } while (i == kataTerakhir);
 kataTerakhir = i;
 String n = ctx.getSharedPreferences("p", 0).getString("nama", "").trim();
@@ -301,6 +302,16 @@ resultView.setText("Riwayat " + (i + 1) + "/" + a.length() + " (" + jam + ")\n\n
 } catch (Exception e) { resultView.setText("Riwayat tidak bisa dibaca."); }
 }
 private void mulaiSantai() { ui.removeCallbacks(santai); ui.postDelayed(santai, 20000); }
+private long istirahatSampai;
+private void komentarGerak(String teks, int istirahat) {
+istirahatSampai = istirahat > 0 ? android.os.SystemClock.uptimeMillis() + istirahat : 0;
+android.os.PowerManager pm = (android.os.PowerManager) ctx.getSystemService(Context.POWER_SERVICE);
+boolean panelBuka = panel != null && panel.isAttachedToWindow() && panel.getVisibility() == View.VISIBLE;
+if (jedaSapaan() == 0 || bubble == null || bubble.getVisibility() != View.VISIBLE || panelBuka || !pm.isInteractive()) return;
+long sebelum = terakhirBicara;
+komentar(teks);
+terakhirBicara = sebelum;
+}
 public void komentar(final String teks) {
 terakhirBicara = android.os.SystemClock.uptimeMillis();
 ui.post(new Runnable() { @Override public void run() {
@@ -402,6 +413,7 @@ public void showPanel(String text) {
   public void destroy() {
     tutupGelembung();
     RobotBodyView.bicaraBola = null;
+    RobotBodyView.bicaraGerak = null;
     ui.removeCallbacksAndMessages(null);
     hidePanel();
     if (bubble != null) {

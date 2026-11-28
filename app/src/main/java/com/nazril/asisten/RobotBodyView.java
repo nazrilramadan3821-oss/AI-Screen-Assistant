@@ -84,6 +84,7 @@ p.setTextAlign(Paint.Align.LEFT);
 }
 private static RobotBodyView inst;
 public static java.util.function.Consumer<String> bicaraBola;
+public static java.util.function.BiConsumer<String, Integer> bicaraGerak;
 @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); inst = this; }
 @Override protected void onDetachedFromWindow() { super.onDetachedFromWindow(); if (inst == this) inst = null; }
 public static void aksiGlobal(String nama, String teks) { if (inst != null) inst.aksi(nama, teks); }
@@ -168,6 +169,14 @@ public static void aksiAIGlobal(String teks, org.json.JSONArray langkah) {
         web.setClickable(false);
         web.setFocusable(false);
         addView(web, new FrameLayout.LayoutParams(-1, -1));
+        web.addJavascriptInterface(new Object() {
+            @android.webkit.JavascriptInterface
+            public void gelembung(final String t, final int istirahat) {
+                post(new Runnable() { public void run() {
+                    if (shape == SHAPE3D && bicaraGerak != null) bicaraGerak.accept(t, istirahat);
+                } });
+            }
+        }, "NikoBola");
         web.loadUrl("file:///android_asset/robot3d.html");
         webOn = true;
     }
