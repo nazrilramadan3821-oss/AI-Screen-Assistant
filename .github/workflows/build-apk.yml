@@ -22,6 +22,15 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Pasang keystore tetap
+        env:
+          KS: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            mkdir -p ~/.android
+            echo "$KS" | base64 -d > ~/.android/debug.keystore
+          fi
+
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
 
