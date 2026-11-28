@@ -103,6 +103,28 @@ public class VoiceService extends Service {
         return l;
     }
 
+    boolean autoOn = false;
+    final android.os.Handler hg = new android.os.Handler(android.os.Looper.getMainLooper());
+    final Runnable langkahGulir = new Runnable() {
+        public void run() {
+            if (!autoOn) return;
+            gulir(true);
+            awakeUntil = System.currentTimeMillis() + 30000;
+            hg.postDelayed(this, 7000);
+        }
+    };
+
+    void autoGulir(boolean on) {
+        autoOn = on;
+        hg.removeCallbacks(langkahGulir);
+        if (on) hg.postDelayed(langkahGulir, 1500);
+    }
+
+    void gulir(boolean turun) {
+        NikoAccess x = NikoAccess.inst;
+        if (x != null) x.gulirNiko(turun);
+    }
+
     boolean handle(String t) {
         String s = t.toLowerCase(Locale.ROOT).trim();
         long now = System.currentTimeMillis();
@@ -121,7 +143,11 @@ public class VoiceService extends Service {
     }
 
     boolean run(String s) {
-        if (s.contains("berhenti") || (s.contains("matikan niko") || (!namaPanggil().isEmpty() && s.contains("matikan " + namaPanggil())))) { stopSelf(); return true; }
+        if (s.contains("berhenti") || (s.contains("matikan niko") || (!namaPanggil().isEmpty() && s.contains("matikan " + namaPanggil())))) { autoOn = false; stopSelf(); return true; }
+        if (s.contains("scroll terus") || s.contains("otomatis")) { autoGulir(true); return true; }
+        if (s.equals("stop") || s.equals("cukup") || s.equals("diam")) { autoGulir(false); return true; }
+        if (s.contains("turun") || s.contains("lanjut") || s.contains("next")) { gulir(true); return true; }
+        if (s.contains("naik") || s.contains("balik")) { gulir(false); return true; }
         if (s.startsWith("buka ") || s.startsWith("jalankan ")) {
             return open(s.substring(s.indexOf(' ') + 1));
         }

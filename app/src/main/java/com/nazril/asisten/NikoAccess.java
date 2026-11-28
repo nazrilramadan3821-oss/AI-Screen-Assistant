@@ -44,4 +44,19 @@ public void swipe(float x1, float y1, float x2, float y2, long ms) {
         dispatchGesture(new GestureDescription.Builder()
                 .addStroke(new GestureDescription.StrokeDescription(p, 0, 60)).build(), null, null);
     }
+
+    public void gulirNiko(boolean turun) {
+        try {
+            android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+            float x = dm.widthPixels * 0.5f;
+            float y1 = dm.heightPixels * (turun ? 0.75f : 0.30f);
+            float y2 = dm.heightPixels * (turun ? 0.30f : 0.75f);
+            android.graphics.Path p = new android.graphics.Path();
+            p.moveTo(x, y1);
+            p.lineTo(x, y2);
+            dispatchGesture(new android.accessibilityservice.GestureDescription.Builder()
+                .addStroke(new android.accessibilityservice.GestureDescription.StrokeDescription(p, 0, 280))
+                .build(), null, null);
+        } catch (Exception e) { }
+    }
 }
