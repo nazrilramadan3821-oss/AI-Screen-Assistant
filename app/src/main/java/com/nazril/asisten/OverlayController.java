@@ -97,12 +97,14 @@ ctx.getSharedPreferences("p", 0).registerOnSharedPreferenceChangeListener(ukuran
             lp.x = sx + (int) dx;
             lp.y = sy + (int) dy;
             wm.updateViewLayout(v, lp);
+            if (e.getEventTime() - e.getDownTime() > 600 && android.os.SystemClock.uptimeMillis() - pusingTerakhir > 6000) {
+              pusingTerakhir = android.os.SystemClock.uptimeMillis();
+              RobotBodyView.aksiGlobal("putar", kataGeser[urutGeser++ % kataGeser.length]);
+            }
           }
         } else if (a == MotionEvent.ACTION_UP) {
           ui.removeCallbacks(stopper);
           if (!moved) listener.onCaptureRequested();
-          else if (android.os.SystemClock.uptimeMillis() - terakhirBicara > 8000)
-            RobotBodyView.aksiGlobal("lompat", kataGeser[acak.nextInt(kataGeser.length)]);
         } else if (a == MotionEvent.ACTION_CANCEL) {
           ui.removeCallbacks(stopper);
         }
@@ -207,6 +209,7 @@ private boolean aiJalan = false;
 
 public void jalankanAI(String teks, org.json.JSONArray langkah) {
 RobotBodyView.aksiGlobal(null, teks);
+RobotBodyView.sendiGlobal(langkah);
 aiGen++;
 if (aiAnim != null) aiAnim.cancel();
 if (aiLp == null || aiView == null || langkah == null || langkah.length() == 0) return;
@@ -264,7 +267,8 @@ private int ukuranBola() {
 String u = ctx.getSharedPreferences("p", 0).getString("ukuran", "2");
 return dp(Math.round(56 * skala()));
 }
-private final String[] kataGeser = { "Eh, mau dibawa ke mana?", "Wah, pindah rumah!", "Pelan-pelan, aku pusing!", "Di sini enak juga." };
+private long pusingTerakhir; private int urutGeser = 0;
+private final String[] kataGeser = { "Aduh, aku pusing!", "Pelan-pelan, aku pusing!", "Kepalaku pusing nih!", "Stop dulu, aku pusing!" };
 private String aksiUntuk(String k) {
 if (k.startsWith("Selamat") || k.startsWith("Halo")) return "lambai";
 if (k.contains("bosan") || k.contains("dicuekin")) return "bola";

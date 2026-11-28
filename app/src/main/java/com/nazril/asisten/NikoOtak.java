@@ -99,7 +99,7 @@ public class NikoOtak {
       + "Isi juga emosi: salah satu dari tenang, riang, kaget, pusing, ngantuk, semangat. "
       + "Balas HANYA JSON: {\"teks\":\"...\",\"emosi\":\"tenang\",\"langkah\":[{\"x\":0,\"y\":-20,\"putar\":10,\"skala\":1.1,\"ms\":300}]}. "
       + "Aturan: 3 sampai 7 langkah; x dan y antara -30 dan 30; putar antara -40 dan 40; skala antara 0.8 dan 1.3; ms antara 150 dan 800."
-      + " Jika robot 3D, tiap langkah boleh ditambah sendi (sudut derajat): kpl kepala miring -25..25, ang kepala angguk -25..25, tka tangan kanan diangkat 0..170, tki tangan kiri diangkat 0..170, ska siku kanan ditekuk 0..120, ski siku kiri ditekuk 0..120, kk kaki kanan diayun -40..40, kl kaki kiri diayun -40..40, tek lutut ditekuk 0..80, wajah salah satu dari senang, biasa, kaget, kedip, tidur."
+      + " Robot 3D: ciptakan gerakan BARU yang unik, tiap langkah WAJIB punya minimal 2 sendi (sudut derajat): kpl kepala miring -25..25, ang kepala angguk -25..25, tka tangan kanan diangkat 0..170, tki tangan kiri diangkat 0..170, ska siku kanan ditekuk 0..120, ski siku kiri ditekuk 0..120, kk kaki kanan diayun -40..40, kl kaki kiri diayun -40..40, tek lutut ditekuk 0..80, wajah salah satu dari senang, biasa, kaget, kedip, tidur."
       + " Pilih sendi yang cocok dengan teksnya, misalnya sapaan: tka 150 dan wajah senang; kaget: tka 120, tki 120, wajah kaget; mengantuk: kpl 20, wajah tidur.";
     JSONObject body = new JSONObject()
       .put("contents", new JSONArray().put(new JSONObject().put("role", "user")
