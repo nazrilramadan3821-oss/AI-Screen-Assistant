@@ -4,6 +4,13 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            def kunci = file(System.getProperty('user.home') + '/.android/debug.keystore')
+            if (kunci.exists()) storeFile kunci
+        }
+    }
+
     namespace 'com.nazril.asisten'
     compileSdk 34
 
