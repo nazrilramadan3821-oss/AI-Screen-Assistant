@@ -296,8 +296,8 @@ nkq('nkBat').onclick=()=>{try{NikoNative.openBattery();}catch(e){}};
 
 // ===== HISTORI =====
 let hsCur=null,hsT=null;
-function hsLoad(){try{return JSON.parse(localStorage.getItem('hist')||'[]');}catch(e){return [];}}
-function hsStore(a){try{localStorage.setItem('hist',JSON.stringify(a.slice(0,30)));}catch(e){}}
+function hsLoad(){try{var r=JSON.parse(localStorage.getItem('hist')||'[]');return Array.isArray(r)?r:[];}catch(e){return [];}}
+function hsStore(a){try{localStorage.setItem('hist',JSON.stringify(a.slice(0,30)));}catch(e){if(!window._hsErr){window._hsErr=1;alert("Error histori: "+e);}}}
 function hsSave(){
   if(!history||!history.length)return;
   const a=hsLoad();
@@ -310,7 +310,7 @@ function hsSave(){
   a.unshift(item);
   hsStore(a);
 }
-new MutationObserver(()=>{clearTimeout(hsT);hsT=setTimeout(hsSave,800);}).observe(chat,{childList:true,subtree:true,characterData:true});
+new MutationObserver(()=>{clearTimeout(hsT);hsT=setTimeout(function(){try{hsSave();}catch(e){if(!window._hsErr){window._hsErr=1;alert("Error histori: "+e);}}},800);}).observe(chat,{childList:true,subtree:true,characterData:true});
 const hsP=document.getElementById('hsPanel'),hsL=document.getElementById('hsList');
 function hsRender(){
   hsL.innerHTML='';
@@ -439,7 +439,7 @@ async function kirim(){
     const reply = (cand && cand.content && cand.content.parts) ? cand.content.parts.map(p=>p.text||"").join("") : "";
     if (!reply) throw new Error("Tidak ada jawaban (mungkin diblokir filter). Coba pertanyaan lain.");
     wait.innerHTML = fmt(reply);
-    history.push({role:"assistant", text:reply});
+    history.push({role:"assistant", text:reply}); try{hsSave();}catch(e){if(!window._hsErr){window._hsErr=1;alert("Error histori: "+e);}}
   }catch(e){
     wait.classList.add("err");
     wait.textContent = "Gagal: " + pesanJelas(e.message);
